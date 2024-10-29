@@ -30,52 +30,207 @@
             <div class="py-5 text-center montserrat">
                 <img class="roudend mb-3" src="/eleicao/img/logo.png" height="80" width="80" style="border-radius: 4px">
                 <h2>BRASIL-RPG</h2>
-                <h4>Apuração da Câmara dos Deputados</h4>
+                <h4>Formulário Eleição Câmara dos Deputados</h4>
             </div>
-            <div class="row">
-                <div class="card">
-                    <div class="card-body">
-                        <h4 class="mb-3"><div class="d-flex"><div class="me-1" id="porcentagem"></div>das seções totalizadas</div></h4>
-                        <div class="progress" style="height: 5px" role="progressbar" aria-label="Basic example" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100">
-                            <div id="barra" class="progress-bar"></div>
+            <div class="alert alert-warning d-flex align-items-center mb-5" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <div>Tome cuidado com o que pretende fazer! Em caso de dúvidas procure um especialista</div>
+            </div>
+            <div class="row mb-2">
+                <div class="col-4">
+                    <form id="formularioCalculo">
+                        <div class="row mb-3">
+                            <h4 class="mt-2">Dados da Eleição</h4>
+                            <div class="col-sm-12 mb-3">
+                                <label for="titulo" class="form-label">Nome das eleições</label>
+                                <input type="text" class="form-control" id="titulo" placeholder="Eleições gerais 2006">
+                            </div>
+                            <div class="col-sm-6">
+                                <label for="vagas" class="form-label">Total de vagas:</label>
+                                <input type="number" class="form-control" id="vagas" value="11">
+                            </div>
+                            <div class="col-sm-6">
+                                <label for="nulosBrancos" class="form-label">Votos nulos e brancos:</label>
+                                <input type="number" class="form-control" id="nulosBrancos" value="10">
+                            </div>
                         </div>
-                        <div class="d-flex mt-2 fs-6">Última atualização:<div class="ms-1" id="data-hora"></div></div>
-                        <button id="refresh-button" class="btn btn-outline-secondary w-auto float-end fs-6"><i class="fas fa-sync-alt me-1"></i>Atualizar Dados</button>
-                    </div>
+                        <hr>
+                        <div class="row" id="partidos-container">
+                            <!-- PARTIDO 1 --> 
+                            <div class="row mb-3">
+                                <h5 class="mt-3">Partido 1:</h5>
+                                <div class="col-auto">
+                                    <label for="partido1" class="form-label">Nome:</label>
+                                    <input type="text" class="form-control" id="partidoNome1" value="PT" required>
+                                </div>
+                                <div class="col-auto w-25">
+                                    <label for="partido1" class="form-label">Votos:</label>
+                                    <input type="number" class="form-control" id="partido1" value="9" required>
+                                </div>
+                                <div class="col-auto">
+                                    <label for="partidoCor1" class="form-label">Cor:</label>
+                                    <input type="color" class="form-control form-control-color" id="partidoCor1" value="#dc3545" title="Choose your color">
+                                </div>
+                            </div>
+                            <!-- PARTIDO 2 --> 
+                            <div class="row mb-3">
+                                <h5 class="mt-3">Partido 2:</h5>
+                                <div class="col-auto">
+                                    <label for="partido2" class="form-label">Nome:</label>
+                                    <input type="text" class="form-control" id="partidoNome2" value="PSB" required>
+                                </div>
+                                <div class="col-auto w-25">
+                                    <label for="partido2" class="form-label">Votos:</label>
+                                    <input type="number" class="form-control" id="partido2" value="0" required>
+                                </div>
+                                <div class="col-auto">
+                                    <label for="partidoCor2" class="form-label">Cor:</label>
+                                    <input type="color" class="form-control form-control-color" id="partidoCor2" value="#ffc107" title="Choose your color">
+                                </div>
+                            </div>
+                            <!-- PARTIDO 3 --> 
+                            <div class="row mb-3">
+                                <h5 class="mt-3">Partido 3:</h5>
+                                <div class="col-auto">
+                                    <label for="partido3" class="form-label">Nome:</label>
+                                    <input type="text" class="form-control" id="partidoNome3" value="PV" required>
+                                </div>
+                                <div class="col-auto w-25">
+                                    <label for="partido3" class="form-label">Votos:</label>
+                                    <input type="number" class="form-control" id="partido3" value="0" required>
+                                </div>
+                                <div class="col-auto">
+                                    <label for="partidoCor3" class="form-label">Cor:</label>
+                                    <input type="color" class="form-control form-control-color" id="partidoCor3" value="#198754" title="Choose your color">
+                                </div>
+                            </div>
+                            <!-- PARTIDO 4 --> 
+                            <div class="row mb-3">
+                                <h5 class="mt-3">Partido 4:</h5>
+                                <div class="col-auto">
+                                    <label for="partido4" class="form-label">Nome:</label>
+                                    <input type="text" class="form-control" id="partidoNome4" value="PSDB" required>
+                                </div>
+                                <div class="col-auto w-25">
+                                    <label for="partido4" class="form-label">Votos:</label>
+                                    <input type="number" class="form-control" id="partido4" value="27" required>
+                                </div>
+                                <div class="col-auto">
+                                    <label for="partidoCor4" class="form-label">Cor:</label>
+                                    <input type="color" class="form-control form-control-color" id="partidoCor4" value="#0d6efd" title="Choose your color">
+                                </div>
+                            </div>
+                            <!-- PARTIDO 5 --> 
+                            <div class="row mb-3">
+                                <h5 class="mt-3">Partido 5:</h5>
+                                <div class="col-auto">
+                                    <label for="partido5" class="form-label">Nome:</label>
+                                    <input type="text" class="form-control" id="partidoNome5" value="AGIR" required>
+                                </div>
+                                <div class="col-auto w-25">
+                                    <label for="partido5" class="form-label">Votos:</label>
+                                    <input type="number" class="form-control" id="partido5" value="31" required>
+                                </div>
+                                <div class="col-auto">
+                                    <label for="partidoCor5" class="form-label">Cor:</label>
+                                    <input type="color" class="form-control form-control-color" id="partidoCor5" value="#ffffff" title="Choose your color">
+                                </div>
+                            </div>
+                            <!-- PARTIDO 6 --> 
+                            <div class="row mb-3">
+                                <h5 class="mt-3">Partido 6:</h5>
+                                <div class="col-auto">
+                                    <label for="partido6" class="form-label">Nome:</label>
+                                    <input type="text" class="form-control" id="partidoNome6" value="MDB" required>
+                                </div>
+                                <div class="col-auto w-25">
+                                    <label for="partido6" class="form-label">Votos:</label>
+                                    <input type="number" class="form-control" id="partido6" value="0" required>
+                                </div>
+                                <div class="col-auto">
+                                    <label for="partidoCor6" class="form-label">Cor:</label>
+                                    <input type="color" class="form-control form-control-color" id="partidoCor6" value="#20c997" title="Choose your color">
+                                </div>
+                            </div>
+                            <!-- PARTIDO 7 --> 
+                            <div class="row mb-3">
+                                <h5 class="mt-3">Partido 7:</h5>
+                                <div class="col-auto">
+                                    <label for="partido7" class="form-label">Nome:</label>
+                                    <input type="text" class="form-control" id="partidoNome7" value="PP" required>
+                                </div>
+                                <div class="col-auto w-25">
+                                    <label for="partido7" class="form-label">Votos:</label>
+                                    <input type="number" class="form-control" id="partido7" value="29" required>
+                                </div>
+                                <div class="col-auto">
+                                    <label for="partidoCor7" class="form-label">Cor:</label>
+                                    <input type="color" class="form-control form-control-color" id="partidoCor7" value="#0d6efd" title="Choose your color">
+                                </div>
+                            </div>
+                            <!-- PARTIDO 8 --> 
+                            <div class="row mb-3">
+                                <h5 class="mt-3">Partido 8:</h5>
+                                <div class="col-auto">
+                                    <label for="partido8" class="form-label">Nome:</label>
+                                    <input type="text" class="form-control" id="partidoNome8" value="PRD" required>
+                                </div>
+                                <div class="col-auto w-25">
+                                    <label for="partido8" class="form-label">Votos:</label>
+                                    <input type="number" class="form-control" id="partido8" value="18" required>
+                                </div>
+                                <div class="col-auto">
+                                    <label for="partidoCor8" class="form-label">Cor:</label>
+                                    <input type="color" class="form-control form-control-color" id="partidoCor8" value="#ffffff" title="Choose your color">
+                                </div>
+                            </div>
+                            <!-- PARTIDO 9 --> 
+                            <div class="row mb-3">
+                                <h5 class="mt-3">Partido 9:</h5>
+                                <div class="col-auto">
+                                    <label for="partido9" class="form-label">Nome:</label>
+                                    <input type="text" class="form-control" id="partidoNome9" value="UB" required>
+                                </div>
+                                <div class="col-auto w-25">
+                                    <label for="partido9" class="form-label">Votos:</label>
+                                    <input type="number" class="form-control" id="partido9" value="0" required>
+                                </div>
+                                <div class="col-auto">
+                                    <label for="partidoCor9" class="form-label">Cor:</label>
+                                    <input type="color" class="form-control form-control-color" id="partidoCor9" value="#ffc107" title="Choose your color">
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="w-25 btn btn-outline-success" onclick="calcularDistribuicao()">Calcular</button>
+                        <button type="button" class="w-25 btn btn-outline-danger" onclick="limparFormulario()">Limpar</button>
+                    </form>
                 </div>
-                <div class="col-12 my-5">
-                    <h2 class="text-center poppins">Câmara dos Deputados</h2>
+                <div class="col-8">
+                    <h2 class="mb-3">BOLETIM DE ELEIÇÃO</h2>
+                    <div id="resultado"></div>
+                    <button class="btn btn-outline-success" onclick="enviarParaPlanilha()">Enviar para Google Sheets</button>
+                    <button class="btn btn-outline-secondary" onclick="copiarResultado()"><i class="fas fa-copy me-2"></i>Copiar texto</button>
+                </div>
+                <div class="col-12">
+                    <h3 class="text-center poppins">Câmara dos Deputados</h3>
                     <div id="chartdiv"></div>
                 </div>
-                <div class="row">
-                    <div class="col">
-                        <div class="card">
-                            <div class="card-body">
-                                <h3 class="poppins">Eleição:</h3>
-                                <div id="lista-eleicao"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="card">
-                            <div class="card-body">
-                                <h3 class="poppins">Partidos:</h3>
-                                <div id="lista-partidos"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="card">
-                            <div class="card-body">
-                                <h3 class="poppins">Deputados:</h3>
-                                <div id="lista-deputados"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            </div>
+            <hr>
+            <div class="row">
+                <div id="imageContainer" class="m-3 text-center" style="height: 650px;"></div>
             </div>
         </main>
-        <script src="camara.js"></script>
+        <script>
+            // Função para calcular a distribuição das vagas (essa já está definida)
+        
+            // Função para limpar todos os campos do formulário
+            function limparFormulario() {
+                document.getElementById("formularioCalculo").reset(); // Reseta todos os campos do formulário
+                document.getElementById("resultado").innerHTML = ""; // Limpa o resultado também, se desejar
+            }
+        </script>
+        <script src="sheets.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
         <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.5/dist/umd/popper.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.min.js"></script>
