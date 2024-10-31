@@ -1,272 +1,220 @@
-let partidos = {}; // Mova a declaração de `partidos` para fora das funções para ser acessível em ambas
+async function fetchData() {
+    const urlDatabase = 'https://opensheet.elk.sh/1T_r486_3eFo3izRUVLrW8r6vEBAGMsVkvAIWN872C80/Database';
+    const urlInformacao = 'https://opensheet.elk.sh/1T_r486_3eFo3izRUVLrW8r6vEBAGMsVkvAIWN872C80/Informacao';
+    
+    try {
+        // Fetch da aba Database
+        const responseDatabase = await fetch(urlDatabase);
+        const dataDatabase = await responseDatabase.json();
 
-function calcularDistribuicao() {
-    // Obtenha os dados de entrada do HTML
-    const vagas = parseInt(document.getElementById("vagas").value);
-    const nulosBrancos = parseInt(document.getElementById("nulosBrancos").value);
-    const partidosNomes = [];
-    partidos = {}; // Inicialize o objeto `partidos` aqui
-    const nome = document.getElementById("titulo").value;
+        // Fetch da aba Informacao
+        const responseInformacao = await fetch(urlInformacao);
+        const dataInformacao = await responseInformacao.json();
 
-    // Coletar nomes, votos e cores de cada partido
-    for (let i = 1; i <= 9; i++) {
-        const nomePartido = document.getElementById(`partidoNome${i}`).value;
-        const votos = parseInt(document.getElementById(`partido${i}`).value);
-        const cor = document.getElementById(`partidoCor${i}`).value; // Coletar a cor
-        partidosNomes.push(nomePartido);
-        partidos[`partido${i}`] = { votos, cor, vagasObtidas: 0, QP: 0, QPInteiro: 0 }; // Adicionar cor ao objeto do partido
-    }
+        // Filtra e estrutura os dados para o gráfico
+        const chartData = dataDatabase
+            .filter(row => row.Partido && row.VagasObtidas > 0)
+            .map(row => ({
+                partido: row.Partido,
+                totalVagas: parseInt(row.VagasObtidas, 10),
+                cor: row.Cor || "#ccc"
+            }));
 
-    // Calcular votos totais e votos válidos
-    const votosTotais = Object.values(partidos).reduce((acc, partido) => acc + partido.votos, 0) + nulosBrancos;
-    const votosValidos = Object.values(partidos).reduce((acc, partido) => acc + partido.votos, 0);
-
-    // Exibir informações iniciais no HTML
-    document.getElementById("resultado").innerHTML = `
-        <h5>${nome}</h5>
-        <p class="mb-0"><strong>Quantidade de vagas:</strong> ${vagas}</p>
-        <p class="mb-0"><strong>Votos válidos:</strong> ${votosValidos}</p>
-        <p class="mb-0"><strong>Votos nulos/brancos:</strong> ${nulosBrancos}</p>
-        <p class="mb-4"><strong>Votos totais:</strong> ${votosTotais}</p>
-    `;
-
-    // Calcular quociente eleitoral (QE)
-    const QE = Math.floor(votosValidos / vagas);
-    document.getElementById("resultado").innerHTML += `<p><strong>Quociente Eleitoral (QE):</strong> ${QE}</p>`;
-
-    // Calcular quociente partidário (QP) e atribuir vagas iniciais
-    let vagasDistribuidas = 0;
-    let distribuicaoQP = `<h4>Quociente Partidário de cada partido:</h4><ul>`;
-
-    for (let i = 1; i <= 9; i++) {
-        const partido = partidos[`partido${i}`];
-        partido.QP = partido.votos / QE;
-        partido.QPInteiro = Math.floor(partido.QP);
-        partido.vagasObtidas = partido.QPInteiro;
-        vagasDistribuidas += partido.vagasObtidas;
-
-        distribuicaoQP += `<li>${partidosNomes[i - 1]} com ${partido.votos} votos: QP completo = ${partido.QP.toFixed(2)}, QP inteiro (vagas iniciais) = ${partido.QPInteiro}</li>`;
-    }
-
-    distribuicaoQP += `</ul>`;
-
-    let vagasRestantes = vagas - vagasDistribuidas;
-    document.getElementById("resultado").innerHTML += `<p>Vagas restantes para distribuir (sobras): ${vagasRestantes}</p>`;
-
-    let distribuicaoSobras = `<h4>Distribuição das Sobras:</h4><ol>`;
-
-    // Distribuição de vagas restantes por sobras
-    while (vagasRestantes > 0) {
-        const partidosOrdenados = Object.values(partidos).sort((a, b) => {
-            const mediaA = a.votos / (a.vagasObtidas + 1);
-            const mediaB = b.votos / (b.vagasObtidas + 1);
-            if (mediaA === mediaB) {
-                return a.vagasObtidas - b.vagasObtidas; // Desempate pelo menor número de vagas ganhas
-            }
-            return mediaB - mediaA; // Ordem decrescente das médias
+        // Calcula o total de vagas e porcentagem
+        const totalVagas = chartData.reduce((acc, item) => acc + item.totalVagas, 0);
+        chartData.forEach(item => {
+            item.percent = ((item.totalVagas / totalVagas) * 100).toFixed(2);
         });
 
-        partidosOrdenados[0].vagasObtidas++;
-        vagasRestantes--;
+        // Exibe as informações gerais a partir da primeira linha da aba "Informacao"
+        console.log(dataInformacao); // Para verificar os dados
+        if (dataInformacao.length > 0) {
+            createGeneralInfo(dataInformacao[0]);  
+        } else {
+            console.error('A aba "Informacao" está vazia ou não contém dados.');
+        }
 
-        const partidoIndex = Object.keys(partidos).find(key => partidos[key] === partidosOrdenados[0]);
-        distribuicaoSobras += `<li>${partidosNomes[partidoIndex.replace('partido', '') - 1]} recebeu 1 vaga extra (Média: ${(partidosOrdenados[0].votos / (partidosOrdenados[0].vagasObtidas)).toFixed(2)} após receber a vaga)</li>`;
+        // Passa a primeira linha com informações gerais da aba "Informacao"
+        createGeneralInfo(dataDatabase[0]);
+        createDataList(dataDatabase);
+        createDeputadoList(dataInformacao);  // Usa dados da aba Informacao para a lista de deputados
+        createChart(chartData);
+        displayDataHora(dataInformacao);
+        percent(dataInformacao);
+
+    } catch (error) {
+        console.error('Erro ao buscar os dados:', error);
     }
-
-    distribuicaoSobras += `</ol>`;
-
-    let resultadoHTML = `<p>Total de vagas distribuídas: ${vagas}</p><ul>`;
-    let somaCadeiras = [];
-
-    for (let i = 1; i <= 9; i++) {
-        const partido = partidos[`partido${i}`];
-        resultadoHTML += `<li>${partidosNomes[i - 1]}: ${partido.vagasObtidas} vagas</li>`;
-        somaCadeiras.push({
-            partido: partidosNomes[i - 1],
-            totalVagas: partido.vagasObtidas,
-            cor: partido.cor
-        });
-    }
-
-    resultadoHTML += `</ul>`;
-
-    let resultadoSoma = `<h4>Total de vagas por partido:</h4><ul>`;
-    somaCadeiras.forEach(item => {
-        resultadoSoma += `<li>${item.partido}: ${item.totalVagas} vagas</li>`;
-    });
-    resultadoSoma += `</ul>`;
-
-    document.getElementById("resultado").innerHTML += distribuicaoQP + distribuicaoSobras + resultadoSoma;
-
-    // Atualizar o gráfico
-    updateChart(somaCadeiras);
 }
 
-am4core.ready(function () {
-    // Themes begin
-    am4core.useTheme(am4themes_animated);
-    // Themes end
+// Adicionando contador de cliques no botão refresh
+let clickCount = 0; // Contador de cliques
+let timer; // Timer para gerenciar o intervalo
 
-    var chart = am4core.create("chartdiv", am4charts.PieChart);
-    chart.hiddenState.properties.opacity = 0; // cria um efeito fade-in inicial
+document.getElementById('refresh-button').addEventListener('click', () => {
+    fetchData(); // Chama a função de buscar dados
 
-    // Configuração do gráfico
-    chart.radius = am4core.percent(70);
-    chart.innerRadius = am4core.percent(40);
-    chart.startAngle = 180;
-    chart.endAngle = 360;
+    clickCount++; // Incrementa o contador de cliques
 
-    var series = chart.series.push(new am4charts.PieSeries());
-    series.dataFields.value = "totalVagas";
-    series.dataFields.category = "partido";
-    series.slices.template.propertyFields.fill = "cor"; // Define a cor a partir dos dados
+    // Se um timer já estiver ativo, não faz nada
+    if (!timer) {
+        // Inicia um novo timer que redefine o contador após 2 segundos
+        timer = setTimeout(() => {
+            clickCount = 0; // Reseta o contador
+            timer = null; // Limpa o timer
+        }, 2000); // 2000 milissegundos (2 segundos)
+    }
 
-    // Ocultar fatias com valor zero usando um adaptador
-    series.slices.template.adapter.add("visible", function(visible, target) {
-        return target.dataItem.value > 0;
+    // Se o contador atingir 3 cliques
+    if (clickCount === 3) {
+        Swal.fire({
+            title: "Pare!",
+            text: "Você clicou muitas vezes no botão atualizar",
+            icon: "warning",
+            showConfirmButton: false,
+            timer: 3500
+        });
+        clickCount = 0; // Reseta o contador após mostrar o alerta
+        clearTimeout(timer); // Limpa o timer
+        timer = null; // Reseta o timer
+        
+        // Congela o botão
+        const refreshButton = document.getElementById('refresh-button');
+        refreshButton.disabled = true; // Desabilita o botão
+
+        // Reabilita o botão após 5 segundos (5000 milissegundos)
+        setTimeout(() => {
+            refreshButton.disabled = false; // Reabilita o botão
+        }, 5000); // Tempo de congelamento em milissegundos
+    }
+});
+
+// Função para exibir informações gerais
+function createGeneralInfo(data) {
+    const generalInfoDiv = document.getElementById('lista-eleicao');
+    generalInfoDiv.innerHTML = `
+        <div><strong>Vagas:</strong> ${data.Vagas || 'N/A'}</div>
+        <div><strong>Votos Totais:</strong> ${data.VotosTotais || 'N/A'}</div>
+        <div><strong>Votos Válidos:</strong> ${data.VotosValidos || 'N/A'}</div>
+        <div><strong>Votos Nulos/Brancos:</strong> ${data.VotosNulosBrancos || 'N/A'}</div>
+    `;
+}
+
+function displayDataHora(data) {
+    const dataHoraDiv = document.getElementById('data-hora');
+    dataHoraDiv.innerHTML = '';
+    
+    // Exibe o valor da primeira linha da coluna DataHora
+    if (data.length > 0 && data[0].DataHora) {
+        dataHoraDiv.innerHTML = `${data[0].DataHora}`;
+    }
+}
+
+function percent(data) {
+    const percentCalcText = document.getElementById('porcentagem');
+    const percentCalc = document.getElementById('barra');
+
+    // Limpa o conteúdo anterior
+    percentCalcText.innerHTML = '';
+    
+    // Exibe o valor da primeira linha da coluna Porcentagem
+    if (data.length > 0 && data[0].Porcentagem !== undefined) {
+        const porcentagem = data[0].Porcentagem;
+
+        // Define o texto na div
+        percentCalcText.innerHTML = `${porcentagem}%`;
+
+        // Altera o width da barra com o valor da porcentagem
+        percentCalc.style.width = `${porcentagem}%`;
+    }
+}
+
+// Função para criar lista de partidos
+function createDataList(data) {
+    const dataList = document.getElementById('lista-partidos');
+    dataList.innerHTML = '';
+
+    data.forEach(row => {
+        const rowDiv = document.createElement('div');
+        rowDiv.innerHTML =
+            (row.Partido ? `<strong>${row.Partido}:</strong> ` : '') +
+            (row.VagasObtidas ? `${row.VagasObtidas} vagas` : '');
+
+        // Remove vírgula no final, se existir
+        if (rowDiv.innerHTML.endsWith(', ')) {
+            rowDiv.innerHTML = rowDiv.innerHTML.slice(0, -2);
+        }
+
+        dataList.appendChild(rowDiv);
     });
+}
 
-    // Mostrar % e quantidade de vagas
-    series.slices.template.tooltipText = "{category}: [bold]{value} vagas ({value.percent.formatNumber('#.0')}%)";
+// Função para exibir lista de deputados
+function createDeputadoList(data) {
+    const deputadoList = document.getElementById('lista-deputados');
+    deputadoList.innerHTML = '';
 
-    // Configura o rótulo para exibir % e quantidade de vagas
-    series.labels.template.text = "{category}: {value} vagas ({value.percent.formatNumber('#.0')}%)";
-    series.labels.template.disabled = false; // habilitar rótulos
-    series.ticks.template.disabled = false; // habilitar ticks
+    data.forEach(row => {
+        if (row.Deputado && row.PartidoDeputado && row.VotoDeputado) { // Verifica se tem os dados necessários
+            const deputadoDiv = document.createElement('div');
+            deputadoDiv.innerHTML = `
+                ${row.Deputado} (${row.PartidoDeputado}): ${row.VotoDeputado} votos
+                ${row.StatusDeputado ? ` - <strong>${row.StatusDeputado}</strong>` : ''}
+            `;
+            deputadoList.appendChild(deputadoDiv);
+        }
+    });
+}
 
-    chart.legend = new am4charts.Legend();
+function createChart(data) {
+    am4core.ready(function () {
+        am4core.useTheme(am4themes_animated);
 
-    // Função para atualizar o gráfico
-    window.updateChart = function (somaCadeiras) {
-        chart.data = somaCadeiras.map(item => ({
+        var chart = am4core.create("chartdiv", am4charts.PieChart);
+        chart.hiddenState.properties.opacity = 0; // Efeito fade-in inicial
+        chart.radius = am4core.percent(70);
+        chart.innerRadius = am4core.percent(40);
+        chart.startAngle = 180;
+        chart.endAngle = 360;
+
+        chart.data = data.map(item => ({
             partido: item.partido,
             totalVagas: item.totalVagas,
-            cor: item.cor // Cor definida pelo usuário
-        }));
-    }
-}); // end am4core.ready()
-
-function enviarParaPlanilha() {
-    // Pegue o título e os dados de distribuição calculados
-    const vagas = parseInt(document.getElementById("vagas").value);
-    const nulosBrancos = parseInt(document.getElementById("nulosBrancos").value);
-    const partidos = [];
-    let votosValidos = 0;
-
-    // Coletar dados dos partidos
-    for (let i = 1; i <= 9; i++) {
-        const nomePartido = document.getElementById(`partidoNome${i}`).value;
-        const votos = parseInt(document.getElementById(`partido${i}`).value);
-        const cor = document.getElementById(`partidoCor${i}`).value;
-
-        partidos.push({
-            Partido: nomePartido,
-            Votos: votos,
-            Cor: cor,
-            VagasObtidas: 0,
-            Sobras: 0
-        });
-
-        votosValidos += votos;
-    }
-
-    const votosTotais = votosValidos + nulosBrancos;
-
-    // Calcular vagas iniciais para cada partido
-    partidos.forEach(partido => {
-        partido.VagasObtidas = Math.floor((partido.Votos / votosValidos) * vagas);
-    });
-
-    const vagasDistribuidas = partidos.reduce((total, partido) => total + partido.VagasObtidas, 0);
-    const sobras = vagas - vagasDistribuidas;
-
-    // Distribuição de sobras
-    if (sobras > 0) {
-        const votosPorVaga = partidos.map(partido => ({
-            Partido: partido.Partido,
-            Votos: partido.Votos - partido.VagasObtidas * (votosValidos / vagas)
+            cor: item.cor
         }));
 
-        votosPorVaga.sort((a, b) => b.Votos - a.Votos);
+        var series = chart.series.push(new am4charts.PieSeries());
+        series.dataFields.value = "totalVagas";
+        series.dataFields.category = "partido";
+        series.slices.template.propertyFields.fill = "cor";
 
-        for (let i = 0; i < sobras; i++) {
-            partidos.find(p => p.Partido === votosPorVaga[i % votosPorVaga.length].Partido).Sobras++;
-        }
-    }
+        series.slices.template.cornerRadius = 4; // Raio de canto
+        series.slices.template.strokeWidth = 0.5; // Largura da borda
+        series.slices.template.stroke = am4core.color("#dee2e6"); // Cor da borda
 
-    partidos.forEach(partido => {
-        partido.VagasObtidas += partido.Sobras;
-    });
-
-    // Preparar dados para enviar ao Google Sheets
-    const data = {
-        data: [
-            { DeputadoVagas: vagas, DeputadoVotosNulosBrancos: nulosBrancos, DeputadoVotosTotais: votosTotais, DeputadoVotosValidos: votosValidos },
-            ...partidos.map(partido => ({
-                DeputadoPartido: partido.Partido,
-                DeputadoVotos: partido.Votos,
-                DeputadoCor: partido.Cor,
-                DeputadoVagasObtidas: partido.VagasObtidas
-            }))
-        ]
-    };
-
-    // URL do endpoint do SheetDB
-    const sheetdbUrl = 'https://sheetdb.io/api/v1/j2m36qig7c123';
-
-    // Enviar dados via POST
-    fetch(sheetdbUrl, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-    })
-    .then(response => response.json())
-    .then(result => {
-        console.log('Dados enviados para o Google Sheets:', result);
-        Swal.fire({
-            title: "Enviado!",
-            text: "Dados enviados para o Google Sheets",
-            icon: "success",
-            showConfirmButton: false,
-            timer: 2500
+        // Ocultar fatias com valor zero
+        series.slices.template.adapter.add("visible", function (visible, target) {
+            return target.dataItem.value > 0;
         });
-    })
-    .catch(error => {
-        console.error('Erro ao enviar dados para o Google Sheets:', error);
-        Swal.fire({
-            title: "Erro!",
-            text: "Erro ao enviar dados. Verifique o console para mais detalhes.",
-            icon: "error",
-            showConfirmButton: false,
-            timer: 2500
+
+        // Rótulo e Tooltip
+        series.slices.template.tooltipText = "{category}: [bold]{value} vagas ({value.percent.formatNumber('#.0')}%)";
+        series.labels.template.text = "{category}: {value} vagas ({value.percent.formatNumber('#.0')}%)";
+        series.labels.template.disabled = false;
+        series.ticks.template.disabled = false;
+
+        chart.legend = new am4charts.Legend();
+
+        // Configuração da animação de expansão
+        series.hiddenState.properties.startAngle = 90; // Ângulo de início das fatias escondidas
+        series.hiddenState.properties.endAngle = 90;   // Ângulo de fim das fatias escondidas
+
+        series.slices.template.events.on("inited", function (event) {
+            event.target.show(1000, am4core.ease.cubicOut); // Expansão das fatias ao carregar
         });
+
     });
 }
 
-function copiarResultado() {
-    // Seleciona o conteúdo da div#resultado
-    const resultado = document.getElementById("resultado").innerText;
-    
-    // Cria um elemento de texto temporário
-    const tempTextArea = document.createElement("textarea");
-    tempTextArea.value = resultado;
-    document.body.appendChild(tempTextArea);
-    
-    // Seleciona e copia o conteúdo
-    tempTextArea.select();
-    document.execCommand("copy");
-    
-    // Remove o elemento temporário
-    document.body.removeChild(tempTextArea);
-
-    // Alerta de sucesso
-    Swal.fire({
-        title: "Copiado!",
-        text: "Dados copiado com sucesso",
-        icon: "success",
-        showConfirmButton: false,
-        timer: 2500
-    });
-}
+// Chama a função para buscar dados ao carregar a página
+fetchData();
