@@ -1,3 +1,21 @@
+// Função para verificar se o link atual corresponde ao link da página
+function highlightActiveLink() {
+    const currentPath = window.location.pathname;
+    const links = document.querySelectorAll('header a'); // Seleciona todos os links dentro do elemento nav
+
+    links.forEach(link => {
+        const href = link.getAttribute('href');
+        if (href === currentPath) {
+            link.classList.add('fw-bold'); // Adiciona a classe 'fw-bold' para o link ativo
+        } else {
+            link.classList.remove('fw-bold'); // Remove a classe 'fw-bold' dos outros links
+        }
+    });
+}
+
+// Chama a função quando a página carregar
+window.onload = highlightActiveLink;
+
 async function fetchData() {
     const url = 'https://opensheet.elk.sh/1T_r486_3eFo3izRUVLrW8r6vEBAGMsVkvAIWN872C80/Presidente';
 
@@ -98,15 +116,16 @@ function displayDataHora(data) {
 function displayElectionInfo(data) {
     const listaEleicaoDiv = document.getElementById('lista-eleicao');
     if (data.length > 0) {
-        const votoTotal = parseInt(data[0].VotoTotal, 10) || 0;
-        const votoNuloBranco = parseInt(data[0].VotoNuloBranco, 10) || 0;
-        const votosValidos = votoTotal - votoNuloBranco;
+        const votoTotal = parseInt(data[0].VotoTotal.replace(/\./g, '')) || 0;
+        const votoNuloBranco = parseInt(data[0].VotoNuloBranco.replace(/\./g, '')) || 0;
+        const votosValidos = parseInt(data[0].VotoValido.replace(/\./g, '')) || 0;
 
         listaEleicaoDiv.innerHTML = `
-            <div><strong>Votos Totais:</strong> ${votoTotal}</div>
-            <div><strong>Votos Nulos/Brancos:</strong> ${votoNuloBranco}</div>
-            <div><strong>Votos Válidos:</strong> ${votosValidos}</div>
+            <div><strong>Votos Totais:</strong> ${votoTotal.toLocaleString('pt-BR')}</div>
+            <div><strong>Votos Nulos/Brancos:</strong> ${votoNuloBranco.toLocaleString('pt-BR')}</div>
+            <div><strong>Votos Válidos:</strong> ${votosValidos.toLocaleString('pt-BR')}</div>
         `;
+        console.log(votoTotal);
     }
 }
 
@@ -115,7 +134,7 @@ function createCards(data) {
     container.innerHTML = ''; // Limpa o contêiner antes de adicionar novos cards
 
     // Ordena os candidatos em ordem decrescente com base no número de votos
-    data.sort((a, b) => parseInt(b.Voto) - parseInt(a.Voto));
+    data.sort((a, b) => parseInt(b.CandidatoPorcentagem) - parseInt(a.CandidatoPorcentagem));
 
     data.forEach(candidate => {
         // Verifica se todos os campos têm valor (não estão vazios ou indefinidos)
@@ -139,7 +158,7 @@ function createCards(data) {
                                     <h2 class="card-title poppins align-content-center">${candidate.Candidato}</h2>
                                     <div class="ms-auto">
                                         <h3 class="card-title poppins mb-0">${porcentagem}%</h3>
-                                        <h5 class="text-end me-2 fw-light">${candidate.Voto} votos</h5>
+                                        <h5 class="text-end me-2 fw-light">${candidate.Voto}</h5>
                                     </div>
                                 </div>
                                 <div class="mt-2 progress" style="height: 3px" role="progressbar" aria-label="Basic example" aria-valuenow="${porcentagem}" aria-valuemin="0" aria-valuemax="100">
