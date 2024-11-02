@@ -1,27 +1,117 @@
 let partidos = {}; // Mova a declaração de `partidos` para fora das funções para ser acessível em ambas
 
+function gerarCampos() {
+    const numeroPartidos = parseInt(document.getElementById("numeroPartidos").value);
+    const container = document.getElementById("partidos-container");
+
+    // Limpa o container antes de gerar novos campos
+    container.innerHTML = "";
+
+    for (let i = 1; i <= numeroPartidos; i++) {
+        // Cria o contêiner principal do partido
+        const partidoDiv = document.createElement("div");
+        partidoDiv.classList.add("row", "mb-3");
+
+        // Título do partido
+        const partidoTitulo = document.createElement("h5");
+        partidoTitulo.classList.add("mt-3");
+        partidoTitulo.innerText = `Partido ${i}:`;
+        partidoDiv.appendChild(partidoTitulo);
+
+        // Nome do partido
+        const nomeDiv = document.createElement("div");
+        nomeDiv.classList.add("col-auto");
+        const nomeLabel = document.createElement("label");
+        nomeLabel.classList.add("form-label");
+        nomeLabel.setAttribute("for", `partidoNome${i}`);
+        nomeLabel.innerText = "Nome:";
+        const nomeInput = document.createElement("input");
+        nomeInput.type = "text";
+        nomeInput.classList.add("form-control");
+        nomeInput.id = `partidoNome${i}`;
+        nomeInput.value = ""; // Defina um valor padrão se necessário
+        nomeInput.required = true;
+        nomeDiv.appendChild(nomeLabel);
+        nomeDiv.appendChild(nomeInput);
+        partidoDiv.appendChild(nomeDiv);
+
+        // Votos do partido
+        const votosDiv = document.createElement("div");
+        votosDiv.classList.add("col-auto", "w-25");
+        const votosLabel = document.createElement("label");
+        votosLabel.classList.add("form-label");
+        votosLabel.setAttribute("for", `partido${i}`);
+        votosLabel.innerText = "Votos:";
+        const votosInput = document.createElement("input");
+        votosInput.type = "number";
+        votosInput.classList.add("form-control");
+        votosInput.id = `partido${i}`;
+        votosInput.value = 0; // Valor padrão 0
+        votosInput.required = true;
+        votosDiv.appendChild(votosLabel);
+        votosDiv.appendChild(votosInput);
+        partidoDiv.appendChild(votosDiv);
+
+        // Cor do partido
+        const corDiv = document.createElement("div");
+        corDiv.classList.add("col-auto");
+        const corLabel = document.createElement("label");
+        corLabel.classList.add("form-label");
+        corLabel.setAttribute("for", `partidoCor${i}`);
+        corLabel.innerText = "Cor:";
+        const corInput = document.createElement("input");
+        corInput.type = "color";
+        corInput.classList.add("form-control", "form-control-color");
+        corInput.id = `partidoCor${i}`;
+        corInput.value = "#000000"; // Cor padrão
+        corInput.title = "Escolha uma cor";
+        corDiv.appendChild(corLabel);
+        corDiv.appendChild(corInput);
+        partidoDiv.appendChild(corDiv);
+
+        // Adiciona o bloco do partido ao contêiner principal
+        container.appendChild(partidoDiv);
+    }
+}
+
 function calcularDistribuicao() {
-    // Obtenha os dados de entrada do HTML
     const vagas = parseInt(document.getElementById("vagas").value);
     const nulosBrancos = parseInt(document.getElementById("nulosBrancos").value);
     const partidosNomes = [];
-    partidos = {}; // Inicialize o objeto `partidos` aqui
+    let partidos = {}; // Inicialize o objeto `partidos` aqui
     const nome = document.getElementById("titulo").value;
 
-    // Coletar nomes, votos e cores de cada partido
-    for (let i = 1; i <= 9; i++) {
-        const nomePartido = document.getElementById(`partidoNome${i}`).value;
-        const votos = parseInt(document.getElementById(`partido${i}`).value);
-        const cor = document.getElementById(`partidoCor${i}`).value; // Coletar a cor
+    // Certifique-se de que o número de partidos está sincronizado com o número de campos gerados
+    const numeroPartidos = parseInt(document.getElementById("numeroPartidos").value);
+
+    for (let i = 1; i <= numeroPartidos; i++) {
+        const nomePartidoElement = document.getElementById(`partidoNome${i}`);
+        const votosElement = document.getElementById(`partido${i}`);
+        const corElement = document.getElementById(`partidoCor${i}`);
+
+        // Verificação se todos os elementos estão presentes
+        if (!nomePartidoElement || !votosElement || !corElement) {
+            console.error(`Erro: Elementos de entrada para partido ${i} não foram encontrados.`);
+            continue; // Pula a iteração caso algum elemento esteja faltando
+        }
+
+        const nomePartido = nomePartidoElement.value;
+        const votos = parseInt(votosElement.value);
+        const cor = corElement.value;
+
         partidosNomes.push(nomePartido);
-        partidos[`partido${i}`] = { votos, cor, vagasObtidas: 0, QP: 0, QPInteiro: 0 }; // Adicionar cor ao objeto do partido
+        partidos[`partido${i}`] = {
+            votos,
+            cor,
+            vagasObtidas: 0,
+            QP: 0,
+            QPInteiro: 0
+        };
     }
 
-    // Calcular votos totais e votos válidos
+    // Cálculos e atualizações de HTML
     const votosTotais = Object.values(partidos).reduce((acc, partido) => acc + partido.votos, 0) + nulosBrancos;
     const votosValidos = Object.values(partidos).reduce((acc, partido) => acc + partido.votos, 0);
-
-    // Exibir informações iniciais no HTML
     document.getElementById("resultado").innerHTML = `
         <h5>${nome}</h5>
         <p class="mb-0"><strong>Quantidade de vagas:</strong> ${vagas}</p>
@@ -30,15 +120,13 @@ function calcularDistribuicao() {
         <p class="mb-4"><strong>Votos totais:</strong> ${votosTotais}</p>
     `;
 
-    // Calcular quociente eleitoral (QE)
     const QE = Math.floor(votosValidos / vagas);
     document.getElementById("resultado").innerHTML += `<p><strong>Quociente Eleitoral (QE):</strong> ${QE}</p>`;
 
-    // Calcular quociente partidário (QP) e atribuir vagas iniciais
     let vagasDistribuidas = 0;
     let distribuicaoQP = `<h4>Quociente Partidário de cada partido:</h4><ul>`;
 
-    for (let i = 1; i <= 9; i++) {
+    for (let i = 1; i <= numeroPartidos; i++) {
         const partido = partidos[`partido${i}`];
         partido.QP = partido.votos / QE;
         partido.QPInteiro = Math.floor(partido.QP);
@@ -55,22 +143,18 @@ function calcularDistribuicao() {
 
     let distribuicaoSobras = `<h4>Distribuição das Sobras:</h4><ol>`;
 
-    // Distribuição de vagas restantes por sobras
     while (vagasRestantes > 0) {
         const partidosOrdenados = Object.values(partidos).sort((a, b) => {
             const mediaA = a.votos / (a.vagasObtidas + 1);
             const mediaB = b.votos / (b.vagasObtidas + 1);
-            if (mediaA === mediaB) {
-                return a.vagasObtidas - b.vagasObtidas; // Desempate pelo menor número de vagas ganhas
-            }
-            return mediaB - mediaA; // Ordem decrescente das médias
+            return mediaB - mediaA;
         });
 
         partidosOrdenados[0].vagasObtidas++;
         vagasRestantes--;
 
         const partidoIndex = Object.keys(partidos).find(key => partidos[key] === partidosOrdenados[0]);
-        distribuicaoSobras += `<li>${partidosNomes[partidoIndex.replace('partido', '') - 1]} recebeu 1 vaga extra (Média: ${(partidosOrdenados[0].votos / (partidosOrdenados[0].vagasObtidas)).toFixed(2)} após receber a vaga)</li>`;
+        distribuicaoSobras += `<li>${partidosNomes[partidoIndex.replace('partido', '') - 1]} recebeu 1 vaga extra (Média: ${(partidosOrdenados[0].votos / partidosOrdenados[0].vagasObtidas).toFixed(2)})</li>`;
     }
 
     distribuicaoSobras += `</ol>`;
@@ -78,7 +162,7 @@ function calcularDistribuicao() {
     let resultadoHTML = `<p>Total de vagas distribuídas: ${vagas}</p><ul>`;
     let somaCadeiras = [];
 
-    for (let i = 1; i <= 9; i++) {
+    for (let i = 1; i <= numeroPartidos; i++) {
         const partido = partidos[`partido${i}`];
         resultadoHTML += `<li>${partidosNomes[i - 1]}: ${partido.vagasObtidas} vagas</li>`;
         somaCadeiras.push({
@@ -98,7 +182,7 @@ function calcularDistribuicao() {
 
     document.getElementById("resultado").innerHTML += distribuicaoQP + distribuicaoSobras + resultadoSoma;
 
-    // Atualizar o gráfico
+    // Atualizar o gráfico (função fictícia de exemplo)
     updateChart(somaCadeiras);
 }
 
@@ -194,29 +278,22 @@ function enviarParaPlanilha() {
         partido.VagasObtidas += partido.Sobras;
     });
 
-    const data = {
-        range: 'A1', // Altere para o intervalo desejado
-        majorDimension: 'ROWS',
-        values: [
-            [
-                "Deputado Vagas", "Deputado Votos Nulos/Brancos", "Deputado Votos Totais", "Deputado Votos Válidos"
-            ],
-            [
-                vagas, nulosBrancos, votosTotais, votosValidos
-            ],
-            ...partidos.map(partido => ([
-                partido.Partido,
-                partido.Votos,
-                partido.Cor,
-                partido.VagasObtidas
-            ]))
-        ]
-    };
+    const data = [
+        {
+            "Deputado Vagas": vagas,
+            "Deputado Votos Nulos/Brancos": nulosBrancos,
+            "Deputado Votos Totais": votosTotais,
+            "Deputado Votos Válidos": votosValidos
+        },
+        ...partidos.map(partido => ({
+            Partido: partido.Partido,
+            Votos: partido.Votos,
+            Cor: partido.Cor,
+            VagasObtidas: partido.VagasObtidas
+        }))
+    ];
 
-    const sheetId = '1T_r486_3eFo3izRUVLrW8r6vEBAGMsVkvAIWN872C80'; // ID da sua planilha
-    const apiKey = '8cce11023c3e0deaed4eba785fd6de9744ee5c13'; // Coloque aqui a chave de API que você copiou
-
-    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/A1:append?valueInputOption=USER_ENTERED&key=${apiKey}`, {
+    fetch(`https://api.steinhq.com/v1/storages/67265bf0c0883333654a1cd7/Camara`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -225,11 +302,13 @@ function enviarParaPlanilha() {
     })
     .then(response => response.json())
     .then(result => {
-        console.log('Dados enviados para o Google Sheets:', result);
+        console.log('Dados enviados para o Stein:', result);
         Swal.fire({
             title: "Enviado!",
-            text: "Dados enviados para o Google Sheets",
-            icon: "success"
+            text: "Dados enviados para o Stein",
+            icon: "success",
+            showConfirmButton: false,
+            timer: 2500
         });
     })
     .catch(error => {
@@ -237,7 +316,9 @@ function enviarParaPlanilha() {
         Swal.fire({
             title: "Erro",
             text: "Erro ao enviar dados para o Google Sheets",
-            icon: "error"
+            icon: "error",
+            showConfirmButton: false,
+            timer: 2500
         });
     });
 }
