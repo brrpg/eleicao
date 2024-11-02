@@ -41,13 +41,15 @@ function displayVotes(data, estado) {
     const barraDiv = document.getElementById('barra');
     const dataHoraDiv = document.getElementById('data-hora');
 
-    const estadoData = data.find(item => item.Estado === estado);
+    // Encontra a entrada do estado para votos nulos/brancos
+    const estadoVotoNuloBranco = data.find(item => item.EstadoVotoNuloBranco === estado);
     const globalData = data[0]; // Presumindo que a primeira entrada contém os dados globais
 
-    if (estadoData) {
-        const votoNuloBranco = parseInt(estadoData.VotoNuloBranco.replace(/\./g, '')) || 0;
+    if (estadoVotoNuloBranco) {
+        // Pega o número de votos nulos/brancos com base na coluna correta
+        const votoNuloBranco = parseInt(estadoVotoNuloBranco.VotoNuloBranco) || 0;
 
-        // Filtra candidatos do estado
+        // Filtra candidatos do estado a partir de uma tabela separada que contém os candidatos
         const candidatos = data.filter(item => item.Estado === estado);
 
         if (candidatos.length === 0) {
