@@ -49,7 +49,7 @@ function displayVotes(data, estado) {
         // Pega o número de votos nulos/brancos com base na coluna correta
         const votoNuloBranco = parseInt(estadoVotoNuloBranco.VotoNuloBranco) || 0;
 
-        // Filtra candidatos do estado a partir de uma tabela separada que contém os candidatos
+        // Filtra candidatos do estado
         const candidatos = data.filter(item => item.Estado === estado);
 
         if (candidatos.length === 0) {
@@ -68,18 +68,18 @@ function displayVotes(data, estado) {
             <div><strong>Votos Válidos:</strong> ${(totalVotos - votoNuloBranco).toLocaleString('pt-BR')}</div>
         `;
 
-        // Cria o HTML para cada candidato
+        // Cria o HTML para cada candidato e calcula porcentagem
         const candidatosHTML = candidatos.map(candidate => {
             const votosCandidato = parseInt(candidate.Voto.replace(/\./g, '')) || 0;
             const porcentagem = ((votosCandidato / totalVotos) * 100).toFixed(2);
             return {
                 nome: candidate.Candidato,
                 cor: candidate.CandidatoCor,
-                porcentagem: porcentagem,
+                porcentagem: parseFloat(porcentagem), // Converter para float para ordenação
                 imagem: candidate.Imagem,
                 votos: candidate.Voto
             };
-        });
+        }).sort((a, b) => b.porcentagem - a.porcentagem); // Ordena em ordem decrescente pela porcentagem
 
         // Adiciona os candidatos ao container de cards
         cardsContainer.innerHTML = candidatosHTML.map(candidate => `
