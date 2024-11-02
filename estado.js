@@ -225,3 +225,44 @@ async function init() {
 
 // Chama a função de inicialização ao carregar a página
 init();
+
+let clickCount = 0; // Contador de cliques
+let timer; // Timer para gerenciar o intervalo
+
+document.getElementById('refresh-button').addEventListener('click', () => {
+    fetchData(); // Chama a função de buscar dados
+
+    clickCount++; // Incrementa o contador de cliques
+
+    // Se um timer já estiver ativo, não faz nada
+    if (!timer) {
+        // Inicia um novo timer que redefine o contador após 2 segundos
+        timer = setTimeout(() => {
+            clickCount = 0; // Reseta o contador
+            timer = null; // Limpa o timer
+        }, 2000); // 2000 milissegundos (2 segundos)
+    }
+
+    // Se o contador atingir 3 cliques
+    if (clickCount === 3) {
+        Swal.fire({
+            title: "Pare!",
+            text: "Você clicou muitas vezes no botão atualizar",
+            icon: "warning",
+            showConfirmButton: false,
+            timer: 3500
+        });
+        clickCount = 0; // Reseta o contador após mostrar o alerta
+        clearTimeout(timer); // Limpa o timer
+        timer = null; // Reseta o timer
+        
+        // Congela o botão
+        const refreshButton = document.getElementById('refresh-button');
+        refreshButton.disabled = true; // Desabilita o botão
+
+        // Reabilita o botão após 5 segundos (5000 milissegundos)
+        setTimeout(() => {
+            refreshButton.disabled = false; // Reabilita o botão
+        }, 5000); // Tempo de congelamento em milissegundos
+    }
+});
