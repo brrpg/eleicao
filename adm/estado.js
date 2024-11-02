@@ -118,9 +118,16 @@ function gerarCampos() {
 }
 
 function calcularDistribuicao() {
-    const nulosBrancos = parseInt(document.getElementById("nulosBrancos").value) || 0;
     const numeroCandidatos = parseInt(document.getElementById("numeroCandidatos").value);
     const resultados = [];
+
+    // Obter votos nulos por estado
+    const nulos = {
+        SP: parseInt(document.getElementById("nulo1").value) || 0,
+        SC: parseInt(document.getElementById("nulo2").value) || 0,
+        PE: parseInt(document.getElementById("nulo3").value) || 0,
+        GO: parseInt(document.getElementById("nulo4").value) || 0,
+    };
 
     for (let i = 1; i <= numeroCandidatos; i++) {
         const nome = document.getElementById(`candidatoNome${i}`).value;
@@ -134,8 +141,8 @@ function calcularDistribuicao() {
         resultados.push({ nome, votos, partido, estado, cor, imagem, npc });
     }
 
-    const totalVotos = nulosBrancos + resultados.reduce((acc, cand) => acc + cand.votos, 0);
-    const votosValidos = totalVotos - nulosBrancos;
+    // Cálculo total de votos
+    const totalVotos = resultados.reduce((acc, cand) => acc + cand.votos, 0);
 
     // Agrupando e calculando por estado
     const resultadosPorEstado = resultados.reduce((acc, cand) => {
@@ -143,6 +150,7 @@ function calcularDistribuicao() {
             acc[cand.estado] = {
                 votosValidosEstado: 0,
                 candidatos: [],
+                votosNulosEstado: nulos[cand.estado] || 0, // Adicionando votos nulos do estado
             };
         }
         acc[cand.estado].votosValidosEstado += cand.votos;
@@ -151,38 +159,47 @@ function calcularDistribuicao() {
     }, {});
 
     // Preparando o resultado para a exibição
-    let resultadoHTML = `<p class="mb-0"><strong>Votos válidos:</strong> ${votosValidos}</p>`;
-    resultadoHTML += `<p class="mb-0"><strong>Votos nulos/brancos:</strong> ${nulosBrancos}</p>`;
-    resultadoHTML += `<p class="mb-3"><strong>Total de votos:</strong> ${totalVotos}</p>`;
+    let resultadoHTML = `<p class="mb-3"><strong>Total de votos:</strong> ${totalVotos}</p>`;
 
     Object.keys(resultadosPorEstado).forEach(estado => {
         const estadoData = resultadosPorEstado[estado];
+        const votosTotaisEstado = estadoData.votosValidosEstado + estadoData.votosNulosEstado; // Cálculo de votos totais
         resultadoHTML += `<h4>${estado}</h4>`;
         resultadoHTML += `<p><strong>Votos válidos (Estado):</strong> ${estadoData.votosValidosEstado}</p>`;
+        resultadoHTML += `<p><strong>Votos nulos (Estado):</strong> ${estadoData.votosNulosEstado}</p>`;
+        resultadoHTML += `<p><strong>Votos totais (Estado):</strong> ${votosTotaisEstado}</p>`; // Adicionando votos totais
         
+        // Calcular porcentagens para cada candidato e ordenar por porcentagem
         estadoData.candidatos.forEach(cand => {
             const porcentagem = estadoData.votosValidosEstado > 0
                 ? ((cand.votos / estadoData.votosValidosEstado) * 100).toFixed(2)
                 : 0;
-            resultadoHTML += `<p><strong>${cand.nome}</strong> (${cand.partido}) - Votos: ${cand.votos} (${porcentagem}%)</p>`;
-            
-            // Adiciona a porcentagem ao objeto do candidato para envio
             cand.porcentagem = porcentagem; // Adiciona a porcentagem ao objeto
+        });
+
+        // Ordenar candidatos por porcentagem em ordem decrescente
+        estadoData.candidatos.sort((a, b) => b.porcentagem - a.porcentagem);
+
+        // Adicionar candidatos ordenados ao resultadoHTML
+        estadoData.candidatos.forEach(cand => {
+            resultadoHTML += `<p><strong>${cand.nome}</strong> (${cand.partido}) - Votos: ${cand.votos} (${cand.porcentagem}%)</p>`;
         });
     });
 
     document.getElementById("resultado").innerHTML = resultadoHTML;
 
-    // Chama a função para enviar os dados
-    enviarParaPlanilha(resultados, nulosBrancos, votosValidos, totalVotos);
+    // Chama a função para enviar os dados, incluindo votos nulos
+    enviarParaPlanilha(resultados, nulos, totalVotos);
 }
 
-function enviarParaPlanilha(resultados, nulosBrancos, votosValidos, totalVotos) {
+function enviarParaPlanilha(resultados, nulos, votosValidos, totalVotos) {
     const url = "https://api.steinhq.com/v1/storages/67265bf0c0883333654a1cd7/Estado";
+
+    // Preparando os dados para enviar, incluindo os votos nulos por estado
     const dadosParaEnviar = resultados.map(cand => ({
-        VotosNulosBrancos: nulosBrancos,
         VotosValidos: votosValidos,
         TotalVotos: totalVotos,
+        VotosNulos: nulos[cand.estado] || 0, // Adicionando votos nulos do estado
         Candidato: cand.nome,
         Partido: cand.partido,
         Votos: cand.votos,
@@ -202,6 +219,7 @@ function enviarParaPlanilha(resultados, nulosBrancos, votosValidos, totalVotos) 
     .then(response => response.json())
     .then(data => {
         console.log("Dados enviados para o Stein com sucesso:", data);
+        
         // Enviando para a segunda planilha com informações selecionadas
         const urlSecundaria = "https://api.steinhq.com/v1/storages/67267f05c0883333654a2351/Estado";
         const dadosParaEnviarSecundaria = resultados.map(cand => ({
@@ -209,7 +227,7 @@ function enviarParaPlanilha(resultados, nulosBrancos, votosValidos, totalVotos) 
             Partido: cand.partido,
             Imagem: cand.imagem,
             Estado: cand.estado,
-            CandidatoCor: cand.cor,
+            CandidatoCor: cand.cor
         }));
 
         return fetch(urlSecundaria, {
