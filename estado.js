@@ -22,7 +22,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
 // Função para buscar dados da planilha
 async function fetchData() {
-    const url = 'https://opensheet.elk.sh/1T_r486_3eFo3izRUVLrW8r6vEBAGMsVkvAIWN872C80/Estado';
+    const url = 'https://api.steinhq.com/v1/storages/67267f05c0883333654a2351/Estado';
 
     try {
         const response = await fetch(url);
