@@ -13,6 +13,9 @@ function highlightActiveLink() {
     });
 }
 
+// Chama a função quando a página carregar
+window.onload = highlightActiveLink;
+
 async function fetchData() {
     const url = 'https://opensheet.elk.sh/1T_r486_3eFo3izRUVLrW8r6vEBAGMsVkvAIWN872C80/Camara'; // URL corrigida
 
