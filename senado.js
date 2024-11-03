@@ -17,18 +17,30 @@ function highlightActiveLink() {
 window.onload = highlightActiveLink;
 
 async function fetchData() {
-    const url = 'https://api.steinhq.com/v1/storages/67267f05c0883333654a2351/Senado';
+    const url = 'https://opensheet.elk.sh/1T_r486_3eFo3izRUVLrW8r6vEBAGMsVkvAIWN872C80/Senado'; // URL corrigida
 
     try {
         const response = await fetch(url);
         const data = await response.json();
-        displayElectionResults(data);
-        displayDataHora(data);
-        displayPercent(data);
+
+        // Adicione esta linha para verificar a estrutura dos dados
+        console.log('Dados recebidos:', data);
+
+        // Verifique se a resposta é um array
+        if (Array.isArray(data)) {
+            // Funções para exibir os dados
+            displayElectionResults(data);
+            displayDataHora(data);
+            displayPercent(data);
+        } else {
+            console.error('Os dados recebidos não são um array:', data);
+        }
+
     } catch (error) {
         console.error('Erro ao buscar os dados:', error);
     }
 }
+
 
 function displayElectionResults(data) {
     const groupedData = {}; // Objeto para armazenar dados agrupados por estado
