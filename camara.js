@@ -1,3 +1,18 @@
+// Função para verificar se o link atual corresponde ao link da página
+function highlightActiveLink() {
+    const currentPath = window.location.pathname;
+    const links = document.querySelectorAll('header a'); // Seleciona todos os links dentro do elemento nav
+
+    links.forEach(link => {
+        const href = link.getAttribute('href');
+        if (href === currentPath) {
+            link.classList.add('fw-bold'); // Adiciona a classe 'fw-bold' para o link ativo
+        } else {
+            link.classList.remove('fw-bold'); // Remove a classe 'fw-bold' dos outros links
+        }
+    });
+}
+
 async function fetchData() {
     const url = 'https://opensheet.elk.sh/1T_r486_3eFo3izRUVLrW8r6vEBAGMsVkvAIWN872C80/Camara'; // URL corrigida
 
