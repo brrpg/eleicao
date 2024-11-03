@@ -53,28 +53,24 @@
         <div class="py-5 text-center montserrat">
             <img class="roudend mb-3" src="/eleicao/img/logo.png" height="80" width="80" style="border-radius: 4px">
             <h2>BRASIL-RPG</h2>
-            <h4>Formulário Câmara dos Deputados</h4>
+            <h4>Formulário Eleição Câmara dos Deputados</h4>
         </div>
         <div class="alert alert-warning d-flex align-items-center mb-5" role="alert">
             <i class="fas fa-exclamation-triangle me-2"></i>
             <div>Tome cuidado com o que pretende fazer! Em caso de dúvidas procure um especialista</div>
         </div>
         <div class="row mb-2">
-            <div class="col-4">
+            <div class="col-12 col-lg-4 mb-5">
                 <form id="formularioCalculo">
                     <div class="row mb-3">
                         <h4 class="mt-2">Dados da Eleição</h4>
-                        <div class="col-sm-12 mb-3">
-                            <label for="titulo" class="form-label">Nome das eleições</label>
-                            <input type="text" class="form-control" id="titulo" placeholder="Eleições gerais 2006">
-                        </div>
                         <div class="col-sm-6">
                             <label for="vagas" class="form-label">Total de vagas:</label>
-                            <input type="number" class="form-control" id="vagas" value="11">
+                            <input type="number" class="form-control" id="vagas" placeholder="11">
                         </div>
                         <div class="col-sm-6">
                             <label for="nulosBrancos" class="form-label">Votos nulos e brancos:</label>
-                            <input type="number" class="form-control" id="nulosBrancos" value="10">
+                            <input type="number" class="form-control" id="nulosBrancos" placeholder="10">
                         </div>
                         <div class="col-sm-6">
                             <label for="numeroPartidos">Número de Partidos:</label>
@@ -92,7 +88,7 @@
                         onclick="limparFormulario()">Limpar</button>
                 </form>
             </div>
-            <div class="col-8">
+            <div class="col-12 col-lg-4 mb-5">
                 <h2 class="mb-3">BOLETIM DE ELEIÇÃO</h2>
                 <div id="resultado"></div>
                 <button class="btn btn-outline-success" onclick="enviarParaPlanilha()">Enviar para Google
@@ -103,6 +99,10 @@
                 <h3 class="text-center poppins">Câmara dos Deputados</h3>
                 <div id="chartdiv"></div>
             </div>
+        </div>
+        <hr>
+        <div class="row">
+            <div id="imageContainer" class="m-3 text-center" style="height: 650px;"></div>
         </div>
     </main>
     <footer class="d-flex flex-wrap justify-content-between align-items-center py-3 px-5 my-5 border-top">
@@ -116,15 +116,6 @@
             </div>
         </div>
     </footer>
-    <script>
-        // Função para calcular a distribuição das vagas (essa já está definida)
-    
-        // Função para limpar todos os campos do formulário
-        function limparFormulario() {
-            document.getElementById("formularioCalculo").reset(); // Reseta todos os campos do formulário
-            document.getElementById("resultado").innerHTML = ""; // Limpa o resultado também, se desejar
-        }
-    </script>
     <script src="camara.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.5/dist/umd/popper.min.js"></script>
