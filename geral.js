@@ -17,7 +17,7 @@ function highlightActiveLink() {
 window.onload = highlightActiveLink;
 
 async function fetchData() {
-    const url = 'https://opensheet.elk.sh/1T_r486_3eFo3izRUVLrW8r6vEBAGMsVkvAIWN872C80/Presidente';
+    const url = 'https://api.steinhq.com/v1/storages/67267f05c0883333654a2351/Presidente';
 
     try {
         // Fetch dos dados
@@ -149,23 +149,23 @@ function createCards(data) {
             const cardHTML = `
                 <div class="card my-3">
                     <div class="row card-body g-0">
-                        <div class="col-md-4 imagem">
-                            <img src="${candidate.Imagem}" class="img-fluid rounded-circle">
-                        </div>
-                        <div class="col-md-8">
-                            <div class="card-body">
-                                <div class="d-flex">
-                                    <h2 class="card-title poppins align-content-center">${candidate.Candidato}</h2>
-                                    <div class="ms-auto">
-                                        <h3 class="card-title poppins mb-0">${porcentagem}%</h3>
-                                        <h5 class="text-end me-2 fw-light">${candidate.Voto}</h5>
-                                    </div>
-                                </div>
-                                <div class="mt-2 progress" style="height: 3px" role="progressbar" aria-label="Basic example" aria-valuenow="${porcentagem}" aria-valuemin="0" aria-valuemax="100">
-                                    <div class="progress-bar" style="width: ${porcentagem}%; background-color: ${candidate.CandidatoCor};"></div>
-                                </div>
-                            </div>
-                        </div>
+<div class="col-md-4 imagem">
+    <img src="${candidate.Imagem}" class="img-fluid rounded-circle">
+</div>
+<div class="col-md-8">
+    <div class="card-body">
+        <div class="d-flex">
+            <h2 class="card-title poppins align-content-center">${candidate.Candidato}</h2>
+            <div class="ms-auto">
+                <h3 class="card-title poppins mb-0">${porcentagem}%</h3>
+                <h5 class="text-end me-2 fw-light">${candidate.Voto}</h5>
+            </div>
+        </div>
+        <div class="mt-2 progress" style="height: 3px" role="progressbar" aria-label="Basic example" aria-valuenow="${porcentagem}" aria-valuemin="0" aria-valuemax="100">
+            <div class="progress-bar" style="width: ${porcentagem}%; background-color: ${candidate.CandidatoCor};"></div>
+        </div>
+    </div>
+</div>
                     </div>
                 </div>
             `;
