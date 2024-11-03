@@ -1,3 +1,21 @@
+// Função para verificar se o link atual corresponde ao link da página
+function highlightActiveLink() {
+    const currentPath = window.location.pathname;
+    const links = document.querySelectorAll('header a'); // Seleciona todos os links dentro do elemento nav
+
+    links.forEach(link => {
+        const href = link.getAttribute('href');
+        if (href === currentPath) {
+            link.classList.add('fw-bold'); // Adiciona a classe 'fw-bold' para o link ativo
+        } else {
+            link.classList.remove('fw-bold'); // Remove a classe 'fw-bold' dos outros links
+        }
+    });
+}
+
+// Chama a função quando a página carregar
+window.onload = highlightActiveLink;
+
 let partidos = {}; // Mova a declaração de `partidos` para fora das funções para ser acessível em ambas
 
 function gerarCampos() {
@@ -79,9 +97,7 @@ function calcularDistribuicao() {
     const nulosBrancos = parseInt(document.getElementById("nulosBrancos").value);
     const partidosNomes = [];
     let partidos = {}; // Inicialize o objeto `partidos` aqui
-    const nome = document.getElementById("titulo").value;
 
-    // Certifique-se de que o número de partidos está sincronizado com o número de campos gerados
     const numeroPartidos = parseInt(document.getElementById("numeroPartidos").value);
 
     for (let i = 1; i <= numeroPartidos; i++) {
@@ -89,10 +105,9 @@ function calcularDistribuicao() {
         const votosElement = document.getElementById(`partido${i}`);
         const corElement = document.getElementById(`partidoCor${i}`);
 
-        // Verificação se todos os elementos estão presentes
         if (!nomePartidoElement || !votosElement || !corElement) {
             console.error(`Erro: Elementos de entrada para partido ${i} não foram encontrados.`);
-            continue; // Pula a iteração caso algum elemento esteja faltando
+            continue;
         }
 
         const nomePartido = nomePartidoElement.value;
@@ -109,11 +124,9 @@ function calcularDistribuicao() {
         };
     }
 
-    // Cálculos e atualizações de HTML
     const votosTotais = Object.values(partidos).reduce((acc, partido) => acc + partido.votos, 0) + nulosBrancos;
     const votosValidos = Object.values(partidos).reduce((acc, partido) => acc + partido.votos, 0);
     document.getElementById("resultado").innerHTML = `
-        <h5>${nome}</h5>
         <p class="mb-0"><strong>Quantidade de vagas:</strong> ${vagas}</p>
         <p class="mb-0"><strong>Votos válidos:</strong> ${votosValidos}</p>
         <p class="mb-0"><strong>Votos nulos/brancos:</strong> ${nulosBrancos}</p>
@@ -147,6 +160,12 @@ function calcularDistribuicao() {
         const partidosOrdenados = Object.values(partidos).sort((a, b) => {
             const mediaA = a.votos / (a.vagasObtidas + 1);
             const mediaB = b.votos / (b.vagasObtidas + 1);
+
+            if (mediaB === mediaA) {
+                // Se as médias são iguais, o partido com menos votos recebe a vaga extra
+                return a.votos - b.votos;
+            }
+
             return mediaB - mediaA;
         });
 
@@ -185,6 +204,7 @@ function calcularDistribuicao() {
     // Atualizar o gráfico (função fictícia de exemplo)
     updateChart(somaCadeiras);
 }
+
 
 am4core.ready(function () {
     // Themes begin
@@ -233,10 +253,11 @@ am4core.ready(function () {
 function enviarParaPlanilha() {
     const vagas = parseInt(document.getElementById("vagas").value);
     const nulosBrancos = parseInt(document.getElementById("nulosBrancos").value);
+    const numeroPartidos = parseInt(document.getElementById("numeroPartidos").value);
     const partidos = [];
     let votosValidos = 0;
 
-    for (let i = 1; i <= 9; i++) {
+    for (let i = 1; i <= numeroPartidos; i++) {
         const nomePartido = document.getElementById(`partidoNome${i}`).value;
         const votos = parseInt(document.getElementById(`partido${i}`).value);
         const cor = document.getElementById(`partidoCor${i}`).value;
@@ -320,5 +341,31 @@ function enviarParaPlanilha() {
             showConfirmButton: false,
             timer: 2500
         });
+    });
+}
+
+function copiarResultado() {
+    // Seleciona o conteúdo da div#resultado
+    const resultado = document.getElementById("resultado").innerText;
+    
+    // Cria um elemento de texto temporário
+    const tempTextArea = document.createElement("textarea");
+    tempTextArea.value = resultado;
+    document.body.appendChild(tempTextArea);
+    
+    // Seleciona e copia o conteúdo
+    tempTextArea.select();
+    document.execCommand("copy");
+    
+    // Remove o elemento temporário
+    document.body.removeChild(tempTextArea);
+
+    // Alerta de sucesso
+    Swal.fire({
+        title: "Copiado!",
+        text: "Dados copiado com sucesso",
+        icon: "success",
+        showConfirmButton: false,
+        timer: 2500
     });
 }
