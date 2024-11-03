@@ -1,19 +1,26 @@
 async function fetchData() {
-    const url = 'https://api.steinhq.com/v1/storages/67267f05c0883333654a2351/Camara';
+    const url = 'https://opensheet.elk.sh/1T_r486_3eFo3izRUVLrW8r6vEBAGMsVkvAIWN872C80/Camara'; // URL corrigida
 
     try {
-        // Fetch dos dados
         const response = await fetch(url);
         const data = await response.json();
 
-        // Exibe dados e chama funções
-        displayPercent(data);
-        displayDataHora(data);
-        createGeneralInfo(data);
-        createDataList(data); // Corrigido para chamar a função certa
-        createDeputadoList(data); // Mantém apenas uma chamada da função
-        createChart(data)
-        console.log(data); // Verifique os dados recebidos
+        // Adicione esta linha para verificar a estrutura dos dados
+        console.log('Dados recebidos:', data);
+
+        // Verifique se a resposta é um array
+        if (Array.isArray(data)) {
+            // Funções para exibir os dados
+            displayPercent(data);
+            displayDataHora(data);
+            createGeneralInfo(data);
+            createDataList(data); // Corrigido para chamar a função certa
+            createDeputadoList(data); // Mantém apenas uma chamada da função
+            createChart(data)
+        } else {
+            console.error('Os dados recebidos não são um array:', data);
+        }
+
     } catch (error) {
         console.error('Erro ao buscar os dados:', error);
     }
