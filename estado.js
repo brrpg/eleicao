@@ -13,6 +13,9 @@ function highlightActiveLink() {
     });
 }
 
+// Chama a função quando a página carregar
+window.onload = highlightActiveLink;
+
 document.addEventListener("DOMContentLoaded", function() {
     const botoes = document.querySelectorAll(".nav button");
     const mapas = document.querySelectorAll("#mapas object");
