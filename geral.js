@@ -17,24 +17,32 @@ function highlightActiveLink() {
 window.onload = highlightActiveLink;
 
 async function fetchData() {
-    const url = 'https://api.steinhq.com/v1/storages/67267f05c0883333654a2351/Presidente';
+    const url = 'https://opensheet.elk.sh/1T_r486_3eFo3izRUVLrW8r6vEBAGMsVkvAIWN872C80/Presidente'; // URL corrigida
 
     try {
-        // Fetch dos dados
         const response = await fetch(url);
         const data = await response.json();
 
-        // Funções para exibir os dados
-        displayPercent(data);
-        displayDataHora(data);
-        displayElectionInfo(data);
-        createCards(data);
-        colorMap(data);
+        // Adicione esta linha para verificar a estrutura dos dados
+        console.log('Dados recebidos:', data);
+
+        // Verifique se a resposta é um array
+        if (Array.isArray(data)) {
+            // Funções para exibir os dados
+            displayPercent(data);
+            displayDataHora(data);
+            displayElectionInfo(data);
+            createCards(data);
+            colorMap(data);
+        } else {
+            console.error('Os dados recebidos não são um array:', data);
+        }
 
     } catch (error) {
         console.error('Erro ao buscar os dados:', error);
     }
 }
+
 
 let clickCount = 0; // Contador de cliques
 let timer; // Timer para gerenciar o intervalo
@@ -76,7 +84,6 @@ document.getElementById('refresh-button').addEventListener('click', () => {
         }, 5000); // Tempo de congelamento em milissegundos
     }
 });
-
 
 // Exibe a porcentagem e ajusta a largura da barra
 function displayPercent(data) {
@@ -198,24 +205,15 @@ function colorMap(data) {
             if (statePath) {
                 // Define a cor de preenchimento usando a propriedade CSS
                 statePath.style.setProperty('fill', estadoCor, 'important');
-                //console.log(`Cor aplicada com sucesso a ${stateId}`); // Confirmação de sucesso
-            } else {
-                console.warn(`Elemento não encontrado: ${stateId}`); // Aviso se o elemento não for encontrado
+                //console.log(`Cor aplicada com sucesso para ${estadoId}`); // Log para depuração
             }
 
             if (stateCircle) {
-                // Define a cor de preenchimento para o círculo se existir
                 stateCircle.style.setProperty('fill', estadoCor, 'important');
-                stateCircle.style.setProperty('stroke','#ffffff', 'important');
-                //console.log(`Cor aplicada com sucesso ao círculo: ${circleId}`); // Confirmação de sucesso
-            } else {
-                //console.warn(`Elemento não encontrado: ${circleId}`); // Aviso se o círculo não for encontrado
             }
-        } else {
-            console.warn(`Dados inválidos: Estado: ${estado}, Cor: ${estadoCor}`); // Aviso para dados inválidos
         }
     });
 }
 
-// Chama a função para buscar dados ao carregar a página
-fetchData();
+// Inicializa a busca de dados quando a página é carregada
+window.onload = fetchData;
