@@ -211,3 +211,29 @@ function enviarParaPlanilha() {
         });
     });
 }
+
+function copiarResultado() {
+    // Seleciona o conteúdo da div#resultado
+    const resultado = document.getElementById("resultado").innerText;
+    
+    // Cria um elemento de texto temporário
+    const tempTextArea = document.createElement("textarea");
+    tempTextArea.value = resultado;
+    document.body.appendChild(tempTextArea);
+    
+    // Seleciona e copia o conteúdo
+    tempTextArea.select();
+    document.execCommand("copy");
+    
+    // Remove o elemento temporário
+    document.body.removeChild(tempTextArea);
+
+    // Alerta de sucesso
+    Swal.fire({
+        title: "Copiado!",
+        text: "Dados copiado com sucesso",
+        icon: "success",
+        showConfirmButton: false,
+        timer: 2500
+    });
+}
