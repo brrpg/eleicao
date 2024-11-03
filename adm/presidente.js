@@ -1,4 +1,20 @@
-//let resultados = [];  // Variável para armazenar os resultados calculados
+// Função para verificar se o link atual corresponde ao link da página
+function highlightActiveLink() {
+    const currentPath = window.location.pathname;
+    const links = document.querySelectorAll('header a'); // Seleciona todos os links dentro do elemento nav
+
+    links.forEach(link => {
+        const href = link.getAttribute('href');
+        if (href === currentPath) {
+            link.classList.add('fw-bold'); // Adiciona a classe 'fw-bold' para o link ativo
+        } else {
+            link.classList.remove('fw-bold'); // Remove a classe 'fw-bold' dos outros links
+        }
+    });
+}
+
+// Chama a função quando a página carregar
+window.onload = highlightActiveLink;
 
 // Função para gerar os campos de candidatos
 function gerarCampos() {
