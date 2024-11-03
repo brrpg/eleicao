@@ -13,6 +13,9 @@ function highlightActiveLink() {
     });
 }
 
+// Chama a função quando a página carregar
+window.onload = highlightActiveLink;
+
 // Função para verificar se o link atual corresponde ao link da página
 function highlightActiveLink() {
     const currentPath = window.location.pathname;
