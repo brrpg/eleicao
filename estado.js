@@ -22,124 +22,148 @@ document.addEventListener("DOMContentLoaded", function() {
 
 // Função para buscar dados da planilha
 async function fetchData() {
-    const url = 'https://api.steinhq.com/v1/storages/67267f05c0883333654a2351/Estado';
-
     try {
-        const response = await fetch(url);
+        const response = await fetch('https://opensheet.elk.sh/1T_r486_3eFo3izRUVLrW8r6vEBAGMsVkvAIWN872C80/Estado');
+        if (!response.ok) {
+            throw new Error('Erro na rede');
+        }
         const data = await response.json();
-        return data;
+        console.log('Dados recebidos:', data); // Log dos dados para verificar
+
+        // Aqui você deve garantir que os dados são válidos antes de prosseguir
+        if (!data || typeof data !== 'object' || !Array.isArray(data)) {
+            throw new Error('Dados inválidos recebidos');
+        }
+
+        return data; // Retorna os dados válidos
     } catch (error) {
         console.error('Erro ao buscar os dados:', error);
     }
 }
 
+
+function colorirSVG(svgElement) {
+    try {
+        const elements = svgElement.querySelectorAll('seletor'); // Verifique se svgElement é um elemento SVG
+        // Lógica para colorir elementos
+    } catch (error) {
+        console.error('Erro ao colorir o SVG:', error);
+    }
+}
+
+
 // Função para exibir os votos
 function displayVotes(data, estado) {
+    if (!data || !estado) {
+        console.error('Dados ou estado inválido:', data, estado);
+        return;
+    }
+
     const listaEleicaoDiv = document.getElementById('lista-eleicao');
     const cardsContainer = document.getElementById('cards-container');
     const porcentagemDiv = document.getElementById('porcentagem');
     const barraDiv = document.getElementById('barra');
     const dataHoraDiv = document.getElementById('data-hora');
 
-    // Encontra a entrada do estado para votos nulos/brancos
+    // Verifica se o estado é válido
     const estadoVotoNuloBranco = data.find(item => item.EstadoVotoNuloBranco === estado);
+    if (!estadoVotoNuloBranco) {
+        listaEleicaoDiv.innerHTML = `<div>Nenhum dado encontrado para ${estado.toUpperCase()}.</div>`;
+        return;
+    }
+
     const globalData = data[0]; // Presumindo que a primeira entrada contém os dados globais
+    const votoNuloBranco = parseInt(estadoVotoNuloBranco.VotoNuloBranco) || 0;
 
-    if (estadoVotoNuloBranco) {
-        // Pega o número de votos nulos/brancos com base na coluna correta
-        const votoNuloBranco = parseInt(estadoVotoNuloBranco.VotoNuloBranco) || 0;
+    // Filtra candidatos do estado
+    const candidatos = data.filter(item => item.Estado === estado);
 
-        // Filtra candidatos do estado
-        const candidatos = data.filter(item => item.Estado === estado);
+    if (candidatos.length === 0) {
+        listaEleicaoDiv.innerHTML = `<div>Nenhum dado encontrado para ${estado.toUpperCase()}.</div>`;
+        return;
+    }
 
-        if (candidatos.length === 0) {
-            listaEleicaoDiv.innerHTML = `<div>Nenhum dado encontrado para ${estado.toUpperCase()}.</div>`;
-            return;
-        }
+    // Soma os votos de todos os candidatos do estado
+    const totalVotos = candidatos.reduce((sum, candidate) => sum + (parseInt(candidate.Voto.replace(/\./g, '')) || 0), 0);
 
-        // Soma os votos de todos os candidatos do estado
-        const totalVotos = candidatos.reduce((sum, candidate) => sum + parseInt(candidate.Voto.replace(/\./g, '')) || 0, 0);
+    // Exibe as informações do estado
+    listaEleicaoDiv.innerHTML = `
+        <div><strong>Estado:</strong> ${estado.toUpperCase()}</div>
+        <div><strong>Votos Totais:</strong> ${totalVotos.toLocaleString('pt-BR')}</div>
+        <div><strong>Votos Nulos/Brancos:</strong> ${votoNuloBranco.toLocaleString('pt-BR')}</div>
+        <div><strong>Votos Válidos:</strong> ${(totalVotos - votoNuloBranco).toLocaleString('pt-BR')}</div>
+    `;
 
-        // Exibe as informações do estado
-        listaEleicaoDiv.innerHTML = `
-            <div><strong>Estado:</strong> ${estado.toUpperCase()}</div>
-            <div><strong>Votos Totais:</strong> ${totalVotos.toLocaleString('pt-BR')}</div>
-            <div><strong>Votos Nulos/Brancos:</strong> ${votoNuloBranco.toLocaleString('pt-BR')}</div>
-            <div><strong>Votos Válidos:</strong> ${(totalVotos - votoNuloBranco).toLocaleString('pt-BR')}</div>
-        `;
+    // Cria o HTML para cada candidato e calcula porcentagem
+    const candidatosHTML = candidatos.map(candidate => {
+        const votosCandidato = parseInt(candidate.Voto.replace(/\./g, '')) || 0;
+        const porcentagem = totalVotos > 0 ? ((votosCandidato / totalVotos) * 100).toFixed(2) : 0;
+        return {
+            nome: candidate.Candidato,
+            cor: candidate.CandidatoCor,
+            porcentagem: parseFloat(porcentagem), // Converter para float para ordenação
+            imagem: candidate.Imagem,
+            votos: candidate.Voto
+        };
+    }).sort((a, b) => b.porcentagem - a.porcentagem); // Ordena em ordem decrescente pela porcentagem
 
-        // Cria o HTML para cada candidato e calcula porcentagem
-        const candidatosHTML = candidatos.map(candidate => {
-            const votosCandidato = parseInt(candidate.Voto.replace(/\./g, '')) || 0;
-            const porcentagem = ((votosCandidato / totalVotos) * 100).toFixed(2);
-            return {
-                nome: candidate.Candidato,
-                cor: candidate.CandidatoCor,
-                porcentagem: parseFloat(porcentagem), // Converter para float para ordenação
-                imagem: candidate.Imagem,
-                votos: candidate.Voto
-            };
-        }).sort((a, b) => b.porcentagem - a.porcentagem); // Ordena em ordem decrescente pela porcentagem
-
-        // Adiciona os candidatos ao container de cards
-        cardsContainer.innerHTML = candidatosHTML.map(candidate => `
-            <div class="card my-3">
-                <div class="row card-body g-0">
-                    <div class="col-md-4 imagem">
-                        <img src="${candidate.imagem}" class="img-fluid rounded-circle">
-                    </div>
-                    <div class="col-md-8">
-                        <div class="card-body">
-                            <div class="d-flex">
-                                <h2 class="card-title poppins align-content-center">${candidate.nome}</h2>
-                                <div class="ms-auto">
-                                    <h3 class="card-title poppins mb-0">${candidate.porcentagem}%</h3>
-                                    <h5 class="text-end me-2 fw-light">${candidate.votos}</h5>
-                                </div>
+    // Adiciona os candidatos ao container de cards
+    cardsContainer.innerHTML = candidatosHTML.map(candidate => `
+        <div class="card my-3">
+            <div class="row card-body g-0">
+                <div class="col-md-4 imagem">
+                    <img src="${candidate.imagem}" class="img-fluid rounded-circle">
+                </div>
+                <div class="col-md-8">
+                    <div class="card-body">
+                        <div class="d-flex">
+                            <h2 class="card-title poppins align-content-center">${candidate.nome}</h2>
+                            <div class="ms-auto">
+                                <h3 class="card-title poppins mb-0">${candidate.porcentagem}%</h3>
+                                <h5 class="text-end me-2 fw-light">${candidate.votos}</h5>
                             </div>
-                            <div class="mt-2 progress" style="height: 3px" role="progressbar" aria-label="Basic example" aria-valuenow="${candidate.porcentagem}" aria-valuemin="0" aria-valuemax="100">
-                                <div class="progress-bar" style="width: ${candidate.porcentagem}%; background-color: ${candidate.cor};"></div>
-                            </div>
+                        </div>
+                        <div class="mt-2 progress" style="height: 3px" role="progressbar" aria-label="Basic example" aria-valuenow="${candidate.porcentagem}" aria-valuemin="0" aria-valuemax="100">
+                            <div class="progress-bar" style="width: ${candidate.porcentagem}%; background-color: ${candidate.cor};"></div>
                         </div>
                     </div>
                 </div>
             </div>
-        `).join('');
+        </div>
+    `).join('');
 
-        // Atualiza a div#porcentagem, div#barra e div#data-hora com os dados globais
-        porcentagemDiv.innerHTML = globalData.Porcentagem + '%';
-        barraDiv.style.width = globalData.Porcentagem + '%';
-        dataHoraDiv.innerHTML = globalData.DataHora;
+    // Atualiza a div#porcentagem, div#barra e div#data-hora com os dados globais
+    porcentagemDiv.innerHTML = globalData.Porcentagem + '%';
+    barraDiv.style.width = globalData.Porcentagem + '%';
+    dataHoraDiv.innerHTML = globalData.DataHora;
 
-        // Colorir o mapa baseado nos candidatos
-        const proporcoes = {};
-        candidatos.forEach(candidate => {
-            const votes = parseInt(candidate.Voto.replace(/\./g, '')) || 0;
-            const percentage = (votes / totalVotos) * 100;
-            if (candidate.CandidatoCor) {
-                proporcoes[candidate.CandidatoCor] = (proporcoes[candidate.CandidatoCor] || 0) + percentage;
-            }
-        });
-
-        // Encontrar a cor com a maior porcentagem
-        let maxCor = Object.keys(proporcoes).reduce((a, b) => proporcoes[a] > proporcoes[b] ? a : b);
-
-        // Colorir o SVG do mapa
-        const idMapa = `mapa${estado === 'sp' ? '0' : estado === 'sc' ? '1' : estado === 'pe' ? '2' : '3'}`;
-        const svgElement = document.getElementById(idMapa);
-
-        if (svgElement) {
-            svgElement.addEventListener("load", function() {
-                const svgDoc = this.contentDocument;
-                colorirSVG(svgDoc.querySelector("svg"), proporcoes, maxCor, estado, data);
-            });
-        } else {
-            console.error(`Elemento SVG com ID '${idMapa}' não encontrado.`);
+    // Colorir o mapa baseado nos candidatos
+    const proporcoes = {};
+    candidatos.forEach(candidate => {
+        const votes = parseInt(candidate.Voto.replace(/\./g, '')) || 0;
+        const percentage = (votes / totalVotos) * 100;
+        if (candidate.CandidatoCor) {
+            proporcoes[candidate.CandidatoCor] = (proporcoes[candidate.CandidatoCor] || 0) + percentage;
         }
+    });
+
+    // Encontrar a cor com a maior porcentagem
+    let maxCor = Object.keys(proporcoes).reduce((a, b) => proporcoes[a] > proporcoes[b] ? a : b);
+
+    // Colorir o SVG do mapa
+    const idMapa = `mapa${estado === 'sp' ? '0' : estado === 'sc' ? '1' : estado === 'pe' ? '2' : '3'}`;
+    const svgElement = document.getElementById(idMapa);
+
+    if (svgElement) {
+        svgElement.addEventListener("load", function() {
+            const svgDoc = this.contentDocument;
+            colorirSVG(svgDoc.querySelector("svg"), proporcoes, maxCor, estado, data);
+        });
     } else {
-        listaEleicaoDiv.innerHTML = `<div>Nenhum dado encontrado para ${estado.toUpperCase()}.</div>`;
+        console.error(`Elemento SVG com ID '${idMapa}' não encontrado.`);
     }
 }
+
 
 // Função para colorir os paths em cada SVG
 function colorirSVG(svgElement, proporcoes, corMax, estado, data) {
