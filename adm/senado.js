@@ -221,6 +221,33 @@ function enviarParaPlanilha() {
     })
     .then(response => response.json())
     .then(data => {
+        console.log("Dados enviados para o Stein com sucesso:", data);
+        
+        // Enviando para a segunda planilha com informações selecionadas
+        const urlSecundaria = "https://api.steinhq.com/v1/storages/67267f05c0883333654a2351/Senado";
+    
+        // Coletando todos os candidatos de todos os estados em uma lista plana
+        const dadosParaEnviarSecundaria = [];
+        Object.keys(resultadosPorEstado).forEach(estado => {
+            resultadosPorEstado[estado].candidatos.forEach(cand => {
+                dadosParaEnviarSecundaria.push({
+                    Candidato: cand.nome,
+                    Partido: cand.partido,
+                    Estado: estado
+                });
+            });
+        });
+    
+        // Enviando dados para a segunda planilha
+        return fetch(urlSecundaria, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(dadosParaEnviarSecundaria)
+        });
+    })    
+    .then(data => {
         console.log("Dados enviados para a planilha com sucesso:", data);
         Swal.fire({
             title: "Enviado!",
