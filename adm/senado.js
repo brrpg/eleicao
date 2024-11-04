@@ -98,8 +98,14 @@ function gerarCampos() {
     
 }
 
+let resultadosPorEstado = {}; // Variável global para armazenar os resultados
+
 function calcularDistribuicao() {
-    const nulosBrancos = parseInt(document.getElementById("nulosBrancos").value) || 0;
+    const nuloSP = parseInt(document.getElementById("nulo1").value) || 0;
+    const nuloSC = parseInt(document.getElementById("nulo2").value) || 0;
+    const nuloPE = parseInt(document.getElementById("nulo3").value) || 0;
+    const nuloGO = parseInt(document.getElementById("nulo4").value) || 0;
+    
     const numeroCandidatos = parseInt(document.getElementById("numeroCandidatos").value);
     const resultados = [];
 
@@ -109,99 +115,102 @@ function calcularDistribuicao() {
         const partido = document.getElementById(`candidatoPartido${i}`).value;
         const estado = document.getElementById(`candidatoEstado${i}`).value.toUpperCase();
 
-        resultados.push({ nome, votos, partido, estado, status });
+        resultados.push({ nome, votos, partido, estado });
     }
 
-    const totalVotos = nulosBrancos + resultados.reduce((acc, cand) => acc + cand.votos, 0);
-    const votosValidos = totalVotos - nulosBrancos;
+    const votosNulosPorEstado = { SP: nuloSP, SC: nuloSC, PE: nuloPE, GO: nuloGO };
+    resultadosPorEstado = {}; // Redefine os resultados
 
-    // Agrupando e calculando por estado
-    const resultadosPorEstado = resultados.reduce((acc, cand) => {
-        if (!acc[cand.estado]) {
-            acc[cand.estado] = {
+    resultados.forEach(cand => {
+        if (!resultadosPorEstado[cand.estado]) {
+            resultadosPorEstado[cand.estado] = {
+                votosNulosEstado: votosNulosPorEstado[cand.estado] || 0,
                 votosValidosEstado: 0,
-                candidatos: [],
+                totalVotosEstado: 0,
+                candidatos: []
             };
         }
-        acc[cand.estado].votosValidosEstado += cand.votos;
-        acc[cand.estado].candidatos.push(cand);
-        return acc;
-    }, {});
-
-    // Calculando e ordenando candidatos por estado
-    Object.keys(resultadosPorEstado).forEach(estado => {
-        const estadoData = resultadosPorEstado[estado];
-        // Ordena os candidatos por votos em ordem decrescente
-        estadoData.candidatos.sort((a, b) => b.votos - a.votos);
-
-        // Atribui o status de eleito e verifica empates
-        if (estadoData.candidatos.length > 0) {
-            const primeiro = estadoData.candidatos[0].votos;
-            let eleitos = 1;
-
-            for (let i = 1; i < estadoData.candidatos.length; i++) {
-                if (estadoData.candidatos[i].votos === primeiro) {
-                    eleitos++;
-                } else {
-                    break;
-                }
-            }
-
-            // Marca o status de "eleito"
-            estadoData.candidatos.forEach((cand, index) => {
-                if (index < eleitos) {
-                    cand.status = "Eleito";
-                } else if (eleitos > 1 && index === eleitos) {
-                    cand.status = "Empate";
-                } else {
-                    cand.status = "";
-                }
-            });
-        }
+        resultadosPorEstado[cand.estado].votosValidosEstado += cand.votos;
+        resultadosPorEstado[cand.estado].candidatos.push(cand);
     });
 
-    // Preparando o resultado para a exibição
-    let resultadoHTML = `<p class="mb-0"><strong>Votos válidos:</strong> ${votosValidos}</p>`;
-    resultadoHTML += `<p class="mb-0"><strong>Votos nulos/brancos:</strong> ${nulosBrancos}</p>`;
-    resultadoHTML += `<p class="mb-3"><strong>Total de votos:</strong> ${totalVotos}</p>`;
-
     Object.keys(resultadosPorEstado).forEach(estado => {
+        resultadosPorEstado[estado].totalVotosEstado =
+            resultadosPorEstado[estado].votosNulosEstado + resultadosPorEstado[estado].votosValidosEstado;
+
         const estadoData = resultadosPorEstado[estado];
-        resultadoHTML += `<h4>${estado}</h4>`;
-        resultadoHTML += `<p><strong>Votos válidos (Estado):</strong> ${estadoData.votosValidosEstado}</p>`;
-        
-        estadoData.candidatos.forEach(cand => {
-            const porcentagem = estadoData.votosValidosEstado > 0
-                ? ((cand.votos / estadoData.votosValidosEstado) * 100).toFixed(2)
+        estadoData.candidatos.sort((a, b) => b.votos - a.votos);
+
+        const primeiro = estadoData.candidatos[0].votos;
+        let eleitos = 1;
+
+        for (let i = 1; i < estadoData.candidatos.length; i++) {
+            if (estadoData.candidatos[i].votos === primeiro) {
+                eleitos++;
+            } else {
+                break;
+            }
+        }
+
+        estadoData.candidatos.forEach((cand, index) => {
+            cand.status = index < eleitos ? "Eleito" : (eleitos > 1 && index === eleitos) ? "Empate" : "";
+            cand.porcentagem = estadoData.votosValidosEstado > 0 
+                ? ((cand.votos / estadoData.votosValidosEstado) * 100).toFixed(2) 
                 : 0;
-            resultadoHTML += `<p><strong>${cand.nome}</strong> (${cand.partido}) - Votos: ${cand.votos} (${porcentagem}%) ${cand.status ? `(${cand.status})` : ''}</p>`;
-            
-            // Adiciona a porcentagem ao objeto do candidato para envio
-            cand.porcentagem = porcentagem; // Adiciona a porcentagem ao objeto
         });
     });
 
-    document.getElementById("resultado").innerHTML = resultadoHTML;
-
-    // Chama a função para enviar os dados
-    //enviarParaPlanilha(resultados, nulosBrancos, votosValidos, totalVotos);
+    exibirResultados(resultadosPorEstado); // Exibe os resultados na tela
 }
 
+function exibirResultados(resultadosPorEstado) {
+    const resultadosDiv = document.getElementById("resultados");
+    resultadosDiv.innerHTML = ""; // Limpa resultados anteriores
 
-function enviarParaPlanilha(resultados, nulosBrancos, votosValidos, totalVotos) {
+    Object.keys(resultadosPorEstado).forEach(estado => {
+        const estadoData = resultadosPorEstado[estado];
+
+        let html = `<h3>Estado: ${estado}</h3>`;
+        html += `<p>Votos Nulos/Brancos: ${estadoData.votosNulosEstado}</p>`;
+        html += `<p>Votos Válidos: ${estadoData.votosValidosEstado}</p>`;
+        html += `<p>Total de Votos: ${estadoData.totalVotosEstado}</p>`;
+        html += `<ul>`; // Inicia uma lista não ordenada
+
+        estadoData.candidatos.forEach(cand => {
+            html += `<li>${cand.nome} (${cand.partido}): ${cand.votos} votos (${cand.porcentagem}%) - ${cand.status}</li>`;
+        });
+
+        html += `</ul><br>`; // Fecha a lista
+        resultadosDiv.innerHTML += html;
+    });
+}
+
+function enviarParaPlanilha() {
+    if (!resultadosPorEstado || Object.keys(resultadosPorEstado).length === 0) {
+        console.error("Nenhum dado para enviar.");
+        return;
+    }
+
     const url = "https://api.steinhq.com/v1/storages/67265bf0c0883333654a1cd7/Senado";
-    const dadosParaEnviar = resultados.map(cand => ({
-        VotosNulosBrancos: nulosBrancos,
-        VotosValidos: votosValidos,
-        TotalVotos: totalVotos,
-        Candidato: cand.nome,
-        Partido: cand.partido,
-        Votos: cand.votos,
-        Porcentagem: cand.porcentagem,
-        Estado: cand.estado,
-        Imagem: cand.imagem,
-        Status: cand.status
-    }));
+    const dadosParaEnviar = [];
+
+    Object.keys(resultadosPorEstado).forEach(estado => {
+        const estadoData = resultadosPorEstado[estado];
+
+        estadoData.candidatos.forEach(cand => {
+            dadosParaEnviar.push({
+                Estado: estado,
+                VotosNulosBrancos: estadoData.votosNulosEstado,
+                VotosValidos: estadoData.votosValidosEstado,
+                TotalVotos: estadoData.totalVotosEstado,
+                Candidato: cand.nome,
+                Partido: cand.partido,
+                Votos: cand.votos,
+                Porcentagem: cand.porcentagem,
+                Status: cand.status || ''
+            });
+        });
+    });
 
     fetch(url, {
         method: "POST",
@@ -212,27 +221,7 @@ function enviarParaPlanilha(resultados, nulosBrancos, votosValidos, totalVotos) 
     })
     .then(response => response.json())
     .then(data => {
-        console.log("Dados enviados para o Stein com sucesso:", data);
-        // Enviando para a segunda planilha com informações selecionadas
-        const urlSecundaria = "https://api.steinhq.com/v1/storages/67267f05c0883333654a2351/Senado";
-        const dadosParaEnviarSecundaria = resultados.map(cand => ({
-            VotoNuloBranco: nulosBrancos,
-            Candidato: cand.nome,
-            Partido: cand.partido,
-            Imagem: cand.imagem,
-            Estado: cand.estado
-        }));
-
-        return fetch(urlSecundaria, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(dadosParaEnviarSecundaria)
-        });
-    })
-    .then(data => {
-        console.log("Dados enviados para o Google Sheets com sucesso:", data);
+        console.log("Dados enviados para a planilha com sucesso:", data);
         Swal.fire({
             title: "Enviado!",
             text: "Dados enviados para a planilha com sucesso",
@@ -242,7 +231,7 @@ function enviarParaPlanilha(resultados, nulosBrancos, votosValidos, totalVotos) 
         });
     })
     .catch(error => {
-        console.error("Erro ao enviar dados para o Google Sheets:", error);
+        console.error("Erro ao enviar dados para a planilha:", error);
         Swal.fire({
             title: "Erro!",
             text: "Erro ao enviar dados. Verifique o console para mais detalhes.",
@@ -250,31 +239,5 @@ function enviarParaPlanilha(resultados, nulosBrancos, votosValidos, totalVotos) 
             showConfirmButton: false,
             timer: 2500
         });
-    });
-}
-
-function copiarResultado() {
-    // Seleciona o conteúdo da div#resultado
-    const resultado = document.getElementById("resultado").innerText;
-    
-    // Cria um elemento de texto temporário
-    const tempTextArea = document.createElement("textarea");
-    tempTextArea.value = resultado;
-    document.body.appendChild(tempTextArea);
-    
-    // Seleciona e copia o conteúdo
-    tempTextArea.select();
-    document.execCommand("copy");
-    
-    // Remove o elemento temporário
-    document.body.removeChild(tempTextArea);
-
-    // Alerta de sucesso
-    Swal.fire({
-        title: "Copiado!",
-        text: "Dados copiado com sucesso",
-        icon: "success",
-        showConfirmButton: false,
-        timer: 2500
     });
 }
