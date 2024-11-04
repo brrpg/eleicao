@@ -65,9 +65,21 @@
                 <div class="container">
                     <div class="row mb-3">
                         <h4 class="mt-2">Dados da Eleição</h4>
-                        <div class="my-2 col-6 col-sm-12">
-                            <label for="nulosBrancos">Votos Nulos e Brancos:</label>
-                            <input type="number" id="nulosBrancos" class="form-control" min="0">
+                        <div class="my-1 input-group col-6 col-sm-12">
+                            <span class="input-group-text">SP</span>
+                            <input type="text" id="nulo1" class="form-control" placeholder="Votos Nulos e Brancos">
+                        </div>
+                        <div class="my-1 input-group col-6 col-sm-12">
+                            <span class="input-group-text">SC</span>
+                            <input type="text" id="nulo2" class="form-control" placeholder="Votos Nulos e Brancos">
+                        </div>
+                        <div class="my-1 input-group col-6 col-sm-12">
+                            <span class="input-group-text">PE</span>
+                            <input type="text" id="nulo3" class="form-control" placeholder="Votos Nulos e Brancos">
+                        </div>
+                        <div class="my-1 input-group col-6 col-sm-12">
+                            <span class="input-group-text">GO</span>
+                            <input type="text" id="nulo4" class="form-control" placeholder="Votos Nulos e Brancos">
                         </div>
                         <div class="my-2 col-6 col-sm-12">
                             <label for="numeroCandidatos">Número de Candidatos:</label>
@@ -86,7 +98,7 @@
             </div>
             <div class="col-12 col-lg-8">
                 <h2 class="mb-3">BOLETIM DE ELEIÇÃO</h2>
-                <div id="resultado"></div>
+                <div id="resultados"></div>
                 <button id="enviar" class="btn btn-outline-success" onclick="enviarParaPlanilha()">Enviar para Google Sheets</button>
                 <button class="btn btn-outline-secondary" onclick="copiarResultado()"><i class="fas fa-copy me-2"></i>Copiar texto</button>
             </div>
