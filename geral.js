@@ -121,17 +121,27 @@ function displayDataHora(data) {
 // Exibe informações da eleição (Votos Totais, Nulos/Brancos, e Válidos)
 function displayElectionInfo(data) {
     const listaEleicaoDiv = document.getElementById('lista-eleicao');
-    const votoTotal = parseInt(data[0].VotoTotal.replace(/\./g, '')) || 0;
-    const votoNuloBranco = parseInt(data[0].VotoNuloBranco.replace(/\./g, '')) || 0;
-    const votosValidos = votoTotal - votoNuloBranco;
-    const Titulo = data[0].Titulo || 'Eleições';
-    const SubtTtulo = data[0].SubTitulo || 'Eleições';
     const tituloDiv = document.getElementById('titulo');
     const subtituloDiv = document.getElementById('subtitulo');
-    tituloDiv.innerHTML = '';
-    subtituloDiv.innerHTML = '';
-    tituloDiv.innerHTML = `${Titulo}`;
-    subtituloDiv.innerHTML = `${SubtTtulo}`;
+
+    // Obtém os valores de título e subtítulo
+    const Titulo = data[0].Titulo || 'Eleições';
+    const SubTitulo = data[0].SubTitulo || 'Eleições';
+    tituloDiv.innerHTML = Titulo;
+    subtituloDiv.innerHTML = SubTitulo;
+
+    // Calcula os votos nulos e brancos
+    const votoNuloBranco = parseInt(data[0].VotoNuloBranco.replace(/\./g, '')) || 0;
+
+    // Calcula os votos válidos somando os votos de todos os candidatos
+    let votosValidos = 0;
+    data.forEach(candidato => {
+        const votos = parseInt(candidato.Voto.replace(/\./g, '')) || 0;
+        votosValidos += votos;
+    });
+
+    // Calcula o total de votos (votos válidos + votos nulos/brancos)
+    const votoTotal = votosValidos + votoNuloBranco;
 
     if (data.length > 0) {
         listaEleicaoDiv.innerHTML = `
