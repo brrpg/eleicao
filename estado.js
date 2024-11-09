@@ -13,9 +13,6 @@ function highlightActiveLink() {
     });
 }
 
-// Chama a função quando a página carregar
-window.onload = highlightActiveLink;
-
 document.addEventListener("DOMContentLoaded", function() {
     const botoes = document.querySelectorAll(".nav button");
     const mapas = document.querySelectorAll("#mapas object");
@@ -91,7 +88,7 @@ function displayVotes(data, estado) {
     }
 
     const globalData = data[0]; // Presumindo que a primeira entrada contém os dados globais
-    const votoNuloBranco = parseInt(data[0].VotoNuloBranco.replace(/\./g, '')) || 0;
+    const votoNuloBranco = parseInt(estadoVotoNuloBranco.VotoNuloBranco.replace(/\./g, '')) || 0;
 
     // Filtra candidatos do estado
     const candidatos = data.filter(item => item.Estado === estado);
