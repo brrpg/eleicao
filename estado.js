@@ -117,6 +117,8 @@ document.addEventListener("DOMContentLoaded", function () {
         const listaEleicaoDiv = document.getElementById('lista-eleicao');
         const cardsContainer = document.getElementById('cards-container');
         const porcentagemDiv = document.getElementById('porcentagem');
+        const tituloDiv = document.getElementById('titulo');
+        const subtituloDiv = document.getElementById('subtitulo');
         const barraDiv = document.getElementById('barra');
         const dataHoraDiv = document.getElementById('data-hora');
 
@@ -124,6 +126,8 @@ document.addEventListener("DOMContentLoaded", function () {
         listaEleicaoDiv.innerHTML = '';
         cardsContainer.innerHTML = '';
         porcentagemDiv.innerHTML = '';
+        tituloDiv.innerHTML = '';
+        subtituloDiv.innerHTML = '';
         barraDiv.style.width = '0%';
         dataHoraDiv.innerHTML = '';
 
@@ -163,6 +167,11 @@ document.addEventListener("DOMContentLoaded", function () {
         `;
 
         // Criação do HTML para cada candidato e cálculo da porcentagem
+
+        const Titulo = data[0].Titulo || 'Eleições';
+        const SubtTtulo = data[0].SubTitulo || 'Eleições';
+
+
         const candidatosHTML = candidatos.map(candidate => {
             const votosCandidato = parseInt(candidate.Voto.replace(/\./g, '')) || 0;
             const porcentagem = totalVotos > 0 ? ((votosCandidato / totalVotos) * 100).toFixed(2) : '0.00'; // Garante duas casas decimais
@@ -210,6 +219,8 @@ document.addEventListener("DOMContentLoaded", function () {
     `).join('');
 
         // Exibe a porcentagem de apuração do estado
+        tituloDiv.innerHTML = `${Titulo}`;
+        subtituloDiv.innerHTML = `${SubtTtulo}`;
         porcentagemDiv.innerHTML = `${porcentagemEstado}%`;
         barraDiv.style.width = `${porcentagemEstado}%`;
         dataHoraDiv.innerHTML = `${new Date().toLocaleString('pt-BR')}`;
