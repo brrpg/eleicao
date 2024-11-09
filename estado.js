@@ -1,4 +1,17 @@
-window.location.hash = '#sp';
+function verificarEstado() {
+    const hash = window.location.hash.substring(1); // Pega o hash da URL sem o '#'
+
+    if (hash === 'sp') {
+        console.log('SÃO PAULO');
+    } else if (hash === 'sc') {
+        console.log('SANTA CATARINA');
+    } else {
+        console.log('Estado não reconhecido');
+        window.location.hash = '#sp';
+    }
+}
+
+verificarEstado();
 
 document.addEventListener("DOMContentLoaded", function () {
     const botoes = document.querySelectorAll(".nav button");
