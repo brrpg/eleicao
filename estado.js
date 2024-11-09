@@ -91,7 +91,7 @@ function displayVotes(data, estado) {
     }
 
     const globalData = data[0]; // Presumindo que a primeira entrada contém os dados globais
-    const votoNuloBranco = parseInt(estadoVotoNuloBranco.VotoNuloBranco) || 0;
+    const votoNuloBranco = parseInt(data[0].VotoNuloBranco.replace(/\./g, '')) || 0;
 
     // Filtra candidatos do estado
     const candidatos = data.filter(item => item.Estado === estado);
