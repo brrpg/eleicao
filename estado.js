@@ -33,6 +33,11 @@ document.addEventListener("DOMContentLoaded", function() {
             document.getElementById('title').textContent = novoTitulo;
         });
     });
+    // Verifica o hash da URL e exibe a div correspondente ao carregar a página
+    const hash = window.location.hash.substring(1); // Remove o '#'
+    if (hash) {
+        mostrarDiv(hash);
+    }
     botoes.forEach(botao => {
         botao.addEventListener("click", () => {
             const targetId = botao.getAttribute("data-target");
@@ -108,13 +113,15 @@ function displayVotes(data, estado) {
 
     // Soma os votos de todos os candidatos do estado
     const totalVotos = candidatos.reduce((sum, candidate) => sum + (parseInt(candidate.Voto.replace(/\./g, '')) || 0), 0);
+    console.log(totalVotos)
+    const totalVotos1 = totalVotos + votoNuloBranco;
 
     // Exibe as informações do estado
     listaEleicaoDiv.innerHTML = `
         <div><strong>Estado:</strong> ${estado.toUpperCase()}</div>
-        <div><strong>Votos Totais:</strong> ${totalVotos.toLocaleString('pt-BR')}</div>
+        <div><strong>Votos Totais:</strong> ${totalVotos1.toLocaleString('pt-BR')}</div>
         <div><strong>Votos Nulos/Brancos:</strong> ${votoNuloBranco.toLocaleString('pt-BR')}</div>
-        <div><strong>Votos Válidos:</strong> ${(totalVotos - votoNuloBranco).toLocaleString('pt-BR')}</div>
+        <div><strong>Votos Válidos:</strong> ${totalVotos.toLocaleString('pt-BR')}</div>
     `;
 
     // Cria o HTML para cada candidato e calcula porcentagem
