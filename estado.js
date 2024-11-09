@@ -13,41 +13,6 @@ function highlightActiveLink() {
     });
 }
 
-document.addEventListener("DOMContentLoaded", function() {
-    const botoes = document.querySelectorAll(".nav button");
-    const mapas = document.querySelectorAll("#mapas object");
-
-    botoes.forEach((botao, index) => {
-        botao.addEventListener("click", () => {
-            // Oculta todos os mapas
-            mapas.forEach((mapa) => {
-                mapa.style.display = "none";
-            });
-
-            // Exibe o mapa correspondente ao botão clicado
-            mapas[index].style.display = "block";
-
-            // Obtém o valor do atributo data-titulo do botão clicado
-            const novoTitulo = botao.getAttribute('data-titulo');
-            // Altera o conteúdo do h3 com o ID 'title'
-            document.getElementById('title').textContent = novoTitulo;
-        });
-    });
-    // Verifica o hash da URL e exibe a div correspondente ao carregar a página
-    const hash = window.location.hash.substring(1); // Remove o '#'
-    if (hash) {
-        mostrarDiv(hash);
-    }
-    botoes.forEach(botao => {
-        botao.addEventListener("click", () => {
-            const targetId = botao.getAttribute("data-target");
-            // Altera o hash na URL para refletir a div selecionada
-            window.location.hash = targetId;
-            mostrarDiv(targetId);
-        });
-    });
-});
-
 // Função para buscar dados da planilha
 async function fetchData() {
     try {
@@ -69,7 +34,6 @@ async function fetchData() {
     }
 }
 
-
 function colorirSVG(svgElement) {
     try {
         const elements = svgElement.querySelectorAll('seletor'); // Verifique se svgElement é um elemento SVG
@@ -78,7 +42,6 @@ function colorirSVG(svgElement) {
         console.error('Erro ao colorir o SVG:', error);
     }
 }
-
 
 // Função para exibir os votos
 function displayVotes(data, estado) {
@@ -93,19 +56,19 @@ function displayVotes(data, estado) {
     const barraDiv = document.getElementById('barra');
     const dataHoraDiv = document.getElementById('data-hora');
 
-    // Verifica se o estado é válido
+    // Verifica se o estado está presente nos dados
     const estadoVotoNuloBranco = data.find(item => item.EstadoVotoNuloBranco === estado);
     if (!estadoVotoNuloBranco) {
         listaEleicaoDiv.innerHTML = `<div>Nenhum dado encontrado para ${estado.toUpperCase()}.</div>`;
         return;
     }
 
+    // Obtém dados globais e valida VotoNuloBranco
     const globalData = data[0]; // Presumindo que a primeira entrada contém os dados globais
-    const votoNuloBranco = parseInt(estadoVotoNuloBranco.VotoNuloBranco.replace(/\./g, '')) || 0;
+    const votoNuloBranco = estadoVotoNuloBranco.VotoNuloBranco ? parseInt(estadoVotoNuloBranco.VotoNuloBranco.replace(/\./g, '')) || 0 : 0;
 
     // Filtra candidatos do estado
     const candidatos = data.filter(item => item.Estado === estado);
-
     if (candidatos.length === 0) {
         listaEleicaoDiv.innerHTML = `<div>Nenhum dado encontrado para ${estado.toUpperCase()}.</div>`;
         return;
@@ -113,7 +76,9 @@ function displayVotes(data, estado) {
 
     // Soma os votos de todos os candidatos do estado
     const totalVotos = candidatos.reduce((sum, candidate) => sum + (parseInt(candidate.Voto.replace(/\./g, '')) || 0), 0);
-    console.log(totalVotos)
+    console.log('Total de Votos:', totalVotos);
+
+    // Total de votos com nulos e brancos
     const totalVotos1 = totalVotos + votoNuloBranco;
 
     // Exibe as informações do estado
@@ -124,10 +89,11 @@ function displayVotes(data, estado) {
         <div><strong>Votos Válidos:</strong> ${totalVotos.toLocaleString('pt-BR')}</div>
     `;
 
-    // Cria o HTML para cada candidato e calcula porcentagem
+    // Criação do HTML para cada candidato e cálculo da porcentagem
     const candidatosHTML = candidatos.map(candidate => {
         const votosCandidato = parseInt(candidate.Voto.replace(/\./g, '')) || 0;
         const porcentagem = totalVotos > 0 ? ((votosCandidato / totalVotos) * 100).toFixed(2) : 0;
+
         return {
             nome: candidate.Candidato,
             cor: candidate.CandidatoCor,
@@ -135,14 +101,14 @@ function displayVotes(data, estado) {
             imagem: candidate.Imagem,
             votos: candidate.Voto
         };
-    }).sort((a, b) => b.porcentagem - a.porcentagem); // Ordena em ordem decrescente pela porcentagem
+    }).sort((a, b) => b.porcentagem - a.porcentagem); // Ordena pela porcentagem em ordem decrescente
 
     // Adiciona os candidatos ao container de cards
     cardsContainer.innerHTML = candidatosHTML.map(candidate => `
         <div class="card my-3">
             <div class="row card-body g-0">
                 <div class="col-md-4 imagem">
-                    <img src="${candidate.imagem}" class="img-fluid rounded-circle">
+                    <img src="${candidate.imagem}" class="img-fluid rounded-circle" alt="${candidate.nome}">
                 </div>
                 <div class="col-md-8">
                     <div class="card-body">
@@ -153,7 +119,7 @@ function displayVotes(data, estado) {
                                 <h5 class="text-end me-2 fw-light">${candidate.votos}</h5>
                             </div>
                         </div>
-                        <div class="mt-2 progress" style="height: 3px" role="progressbar" aria-label="Basic example" aria-valuenow="${candidate.porcentagem}" aria-valuemin="0" aria-valuemax="100">
+                        <div class="mt-2 progress" style="height: 3px" role="progressbar" aria-label="Progresso do candidato" aria-valuenow="${candidate.porcentagem}" aria-valuemin="0" aria-valuemax="100">
                             <div class="progress-bar" style="width: ${candidate.porcentagem}%; background-color: ${candidate.cor};"></div>
                         </div>
                     </div>
@@ -162,12 +128,12 @@ function displayVotes(data, estado) {
         </div>
     `).join('');
 
-    // Atualiza a div#porcentagem, div#barra e div#data-hora com os dados globais
+    // Atualiza as divs globais com dados globais
     porcentagemDiv.innerHTML = globalData.Porcentagem + '%';
     barraDiv.style.width = globalData.Porcentagem + '%';
     dataHoraDiv.innerHTML = globalData.DataHora;
 
-    // Colorir o mapa baseado nos candidatos
+    // Colorir o mapa com base nas porcentagens dos candidatos
     const proporcoes = {};
     candidatos.forEach(candidate => {
         const votes = parseInt(candidate.Voto.replace(/\./g, '')) || 0;
@@ -178,9 +144,9 @@ function displayVotes(data, estado) {
     });
 
     // Encontrar a cor com a maior porcentagem
-    let maxCor = Object.keys(proporcoes).reduce((a, b) => proporcoes[a] > proporcoes[b] ? a : b);
+    const maxCor = Object.keys(proporcoes).reduce((a, b) => proporcoes[a] > proporcoes[b] ? a : b, '');
 
-    // Colorir o SVG do mapa
+    // Identificação do SVG correto
     const idMapa = `mapa${estado === 'sp' ? '0' : estado === 'sc' ? '1' : estado === 'pe' ? '2' : '3'}`;
     const svgElement = document.getElementById(idMapa);
 
@@ -193,7 +159,6 @@ function displayVotes(data, estado) {
         console.error(`Elemento SVG com ID '${idMapa}' não encontrado.`);
     }
 }
-
 
 // Função para colorir os paths em cada SVG
 function colorirSVG(svgElement, proporcoes, corMax, estado, data) {
@@ -259,23 +224,37 @@ function alterarStroke(svgElement) {
     });
 }
 
-
 // Função para exibir os votos totais ao carregar a página
 async function init() {
     const data = await fetchData();
-    // Exibir votos totais (de SP por exemplo)
-    displayVotes(data, 'sp');
+    
+    // Verifique se há um hash na URL e exiba os votos correspondentes
+    const hash = window.location.hash.substring(1); // Remove o '#'
+    if (hash) {
+        displayVotes(data, hash); // Exibe a div de acordo com o hash da URL
+    } else {
+        displayVotes(data, 'sp'); // Caso não haja hash, exibe São Paulo por padrão
+    }
 
     // Adicionar eventos de clique para os botões
-    document.getElementById('btn-sp').addEventListener('click', () => displayVotes(data, 'sp'));
-    document.getElementById('btn-sc').addEventListener('click', () => displayVotes(data, 'sc'));
-    document.getElementById('btn-pe').addEventListener('click', () => displayVotes(data, 'pe'));
-    document.getElementById('btn-go').addEventListener('click', () => displayVotes(data, 'go'));
-
-    // Ativar o botão SP ao carregar a página
-    const spButton = document.getElementById('btn-sp');
-    spButton.click(); // Simula um clique no botão SP para ativar e mostrar o mapa
+    document.getElementById('btn-sp').addEventListener('click', () => {
+        window.location.hash = 'sp'; // Atualiza o hash para 'sp'
+        displayVotes(data, 'sp'); // Exibe votos de SP
+    });
+    document.getElementById('btn-sc').addEventListener('click', () => {
+        window.location.hash = 'sc'; // Atualiza o hash para 'sc'
+        displayVotes(data, 'sc'); // Exibe votos de SC
+    });
+    document.getElementById('btn-pe').addEventListener('click', () => {
+        window.location.hash = 'pe'; // Atualiza o hash para 'pe'
+        displayVotes(data, 'pe'); // Exibe votos de PE
+    });
+    document.getElementById('btn-go').addEventListener('click', () => {
+        window.location.hash = 'go'; // Atualiza o hash para 'go'
+        displayVotes(data, 'go'); // Exibe votos de GO
+    });
 }
+
 
 // Chama a função de inicialização ao carregar a página
 init();
@@ -319,4 +298,58 @@ document.getElementById('refresh-button').addEventListener('click', () => {
             refreshButton.disabled = false; // Reabilita o botão
         }, 5000); // Tempo de congelamento em milissegundos
     }
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+    const botoes = document.querySelectorAll(".nav button");
+    const divs = document.querySelectorAll("div[id^='sp'], div[id^='sc'], div[id^='pe'], div[id^='go']"); // Seleciona as divs com id correspondente
+    const title = document.getElementById("title");
+
+    // Função para mostrar a div correspondente ao hash
+    function mostrarDiv(id) {
+        // Oculta todas as divs
+        divs.forEach((div) => {
+            div.style.display = "none";
+        });
+
+        // Exibe a div correspondente ao ID
+        const targetDiv = document.getElementById(id);
+        if (targetDiv) {
+            targetDiv.style.display = "block";
+        }
+
+        // Altera o título com base no botão correspondente ao ID
+        const botao = document.querySelector(`button[data-target="${id}"]`);
+        if (botao) {
+            const novoTitulo = botao.getAttribute("data-titulo");
+            title.textContent = novoTitulo;
+        }
+    }
+
+    // Verifica o hash da URL ao carregar a página
+    const hash = window.location.hash.substring(1); // Remove o '#'
+    if (hash) {
+        mostrarDiv(hash); // Se houver hash na URL, chama a função para mostrar a div correspondente
+    } else {
+        mostrarDiv("sp"); // Se não houver hash, exibe a primeira div por padrão (ou outra que você desejar)
+    }
+
+    // Configura o evento de clique nos botões
+    botoes.forEach((botao) => {
+        botao.addEventListener("click", () => {
+            const targetId = botao.getAttribute("data-target");
+
+            // Altera o hash na URL para refletir a div selecionada
+            if (window.location.hash !== `#${targetId}`) {
+                window.location.hash = targetId; // Atualiza o hash na URL
+            }
+            mostrarDiv(targetId); // Mostra a div correspondente ao botão
+        });
+    });
+
+    // Monitora mudanças no hash para garantir que, ao voltar ou avançar no histórico, a div correta seja exibida
+    window.addEventListener('hashchange', function() {
+        const newHash = window.location.hash.substring(1);
+        mostrarDiv(newHash); // Exibe a div correspondente ao novo hash
+    });
 });
