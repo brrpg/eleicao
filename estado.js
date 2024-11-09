@@ -33,6 +33,14 @@ document.addEventListener("DOMContentLoaded", function() {
             document.getElementById('title').textContent = novoTitulo;
         });
     });
+    botoes.forEach(botao => {
+        botao.addEventListener("click", () => {
+            const targetId = botao.getAttribute("data-target");
+            // Altera o hash na URL para refletir a div selecionada
+            window.location.hash = targetId;
+            mostrarDiv(targetId);
+        });
+    });
 });
 
 // Função para buscar dados da planilha
