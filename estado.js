@@ -1,3 +1,5 @@
+window.location.hash = '#sp';
+
 document.addEventListener("DOMContentLoaded", function () {
     const botoes = document.querySelectorAll(".nav button");
     const divs = document.querySelectorAll("div[id^='sp'], div[id^='sc'], div[id^='pe'], div[id^='go']"); // Seleciona as divs com id correspondente
