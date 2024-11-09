@@ -124,6 +124,14 @@ function displayElectionInfo(data) {
     const votoTotal = parseInt(data[0].VotoTotal.replace(/\./g, '')) || 0;
     const votoNuloBranco = parseInt(data[0].VotoNuloBranco.replace(/\./g, '')) || 0;
     const votosValidos = votoTotal - votoNuloBranco;
+    const Titulo = data[0].Titulo || 'Eleições';
+    const SubtTtulo = data[0].SubTitulo || 'Eleições';
+    const tituloDiv = document.getElementById('titulo');
+    const subtituloDiv = document.getElementById('subtitulo');
+    tituloDiv.innerHTML = '';
+    subtituloDiv.innerHTML = '';
+    tituloDiv.innerHTML = `${Titulo}`;
+    subtituloDiv.innerHTML = `${SubtTtulo}`;
 
     if (data.length > 0) {
         listaEleicaoDiv.innerHTML = `
