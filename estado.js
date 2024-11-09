@@ -70,6 +70,10 @@ function displayVotes(data, estado) {
         return;
     }
 
+    // Obtém a porcentagem de apuração do estado
+    const porcentagemEstado = estadoVotoNuloBranco.Porcentagem ? parseFloat(estadoVotoNuloBranco.Porcentagem) : 0;
+    console.log(porcentagemEstado);
+
     // Obtém dados globais e valida VotoNuloBranco
     const globalData = data[0]; // Presumindo que a primeira entrada contém os dados globais
     const votoNuloBranco = estadoVotoNuloBranco.VotoNuloBranco ? parseInt(estadoVotoNuloBranco.VotoNuloBranco.replace(/\./g, '')) || 0 : 0;
@@ -99,20 +103,28 @@ function displayVotes(data, estado) {
     // Criação do HTML para cada candidato e cálculo da porcentagem
     const candidatosHTML = candidatos.map(candidate => {
         const votosCandidato = parseInt(candidate.Voto.replace(/\./g, '')) || 0;
-        const porcentagem = totalVotos > 0 ? ((votosCandidato / totalVotos) * 100).toFixed(2) : 0;
-
+        const porcentagem = totalVotos > 0 ? ((votosCandidato / totalVotos) * 100).toFixed(2) : '0.00'; // Garante duas casas decimais
+    
         return {
             nome: candidate.Candidato,
             cor: candidate.CandidatoCor,
-            porcentagem: parseFloat(porcentagem), // Converter para float para ordenação
+            porcentagem: porcentagem, // Já formatado com duas casas decimais
             imagem: candidate.Imagem,
-            votos: candidate.Voto
+            votos: candidate.Voto,
+            status: candidate.Status || '',
+            statuscor: candidate.StatusCor || ''
         };
-    }).sort((a, b) => b.porcentagem - a.porcentagem); // Ordena pela porcentagem em ordem decrescente
-
+    }).sort((a, b) => b.porcentagem - a.porcentagem);
+    
     // Adiciona os candidatos ao container de cards
     cardsContainer.innerHTML = candidatosHTML.map(candidate => `
         <div class="card my-3">
+            ${candidate.status ? 
+                `<div class="card-header bg-${candidate.statuscor === 'verde' ? 'success' : candidate.statuscor === 'vermelho' ? 'danger' : 'primary'} text-white montserrat">
+                    <p class="m-0">${candidate.status}</p>
+                </div>` 
+                : ''
+            }
             <div class="row card-body g-0">
                 <div class="col-md-4 imagem">
                     <img src="${candidate.imagem}" class="img-fluid rounded-circle" alt="${candidate.nome}">
@@ -122,7 +134,7 @@ function displayVotes(data, estado) {
                         <div class="d-flex">
                             <h2 class="card-title poppins align-content-center">${candidate.nome}</h2>
                             <div class="ms-auto">
-                                <h3 class="card-title poppins mb-0">${candidate.porcentagem}%</h3>
+                                <h3 class="card-title poppins mb-0">${candidate.porcentagem}%</h3> <!-- Porcentagem com duas casas decimais -->
                                 <h5 class="text-end me-2 fw-light">${candidate.votos}</h5>
                             </div>
                         </div>
@@ -134,10 +146,10 @@ function displayVotes(data, estado) {
             </div>
         </div>
     `).join('');
-
-    // Atualiza as divs globais com dados globais
-    porcentagemDiv.innerHTML = globalData.Porcentagem + '%';
-    barraDiv.style.width = globalData.Porcentagem + '%';
+    
+    // Atualiza as divs globais com dados específicos do estado
+    porcentagemDiv.innerHTML = porcentagemEstado + '%';
+    barraDiv.style.width = porcentagemEstado + '%';
     dataHoraDiv.innerHTML = globalData.DataHora;
 
     // Colorir o mapa com base nas porcentagens dos candidatos
@@ -166,6 +178,7 @@ function displayVotes(data, estado) {
         console.error(`Elemento SVG com ID '${idMapa}' não encontrado.`);
     }
 }
+
 
 // Função para colorir os paths em cada SVG
 function colorirSVG(svgElement, proporcoes, corMax, estado, data) {
@@ -261,8 +274,6 @@ async function init() {
         displayVotes(data, 'go'); // Exibe votos de GO
     });
 }
-
-
 
 // Chama a função de inicialização ao carregar a página
 init();
