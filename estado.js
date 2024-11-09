@@ -5,6 +5,11 @@ function verificarEstado() {
         console.log('SÃO PAULO');
     } else if (hash === 'sc') {
         console.log('SANTA CATARINA');
+    } else if (hash === 'pe') {
+        console.log('PERNAMBUCO');
+    } 
+    else if (hash === 'go') {
+        console.log('GOIÁS');
     } else {
         console.log('Estado não reconhecido');
         window.location.hash = '#sp';
