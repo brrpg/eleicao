@@ -144,7 +144,7 @@ function displayElectionInfo(data) {
         // Verifica se todos os campos necessários têm valor (não estão vazios ou indefinidos)
         if (
             candidate.Candidato && candidate.Partido && candidate.Imagem &&
-            candidate.CandidatoCor && candidate.Voto && candidate.CandidatoPorcentagem
+            candidate.CandidatoCor && candidate.Voto
         ) {
             // Substitui a vírgula por ponto na porcentagem e calcula
             const porcentagem = votosValidos > 0 ? ((parseInt(candidate.Voto.replace(/\./g, '').replace(',', '.')) / votosValidos) * 100).toFixed(2) : '0.00';
