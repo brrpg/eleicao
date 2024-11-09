@@ -16,24 +16,6 @@ function highlightActiveLink() {
 // Chama a função quando a página carregar
 window.onload = highlightActiveLink;
 
-// Função para verificar se o link atual corresponde ao link da página
-function highlightActiveLink() {
-    const currentPath = window.location.pathname;
-    const links = document.querySelectorAll('header a'); // Seleciona todos os links dentro do elemento nav
-
-    links.forEach(link => {
-        const href = link.getAttribute('href');
-        if (href === currentPath) {
-            link.classList.add('fw-bold'); // Adiciona a classe 'fw-bold' para o link ativo
-        } else {
-            link.classList.remove('fw-bold'); // Remove a classe 'fw-bold' dos outros links
-        }
-    });
-}
-
-// Chama a função quando a página carregar
-window.onload = highlightActiveLink;
-
 async function fetchData() {
     const url = 'https://opensheet.elk.sh/1T_r486_3eFo3izRUVLrW8r6vEBAGMsVkvAIWN872C80/Presidente'; // URL corrigida
 
@@ -50,7 +32,6 @@ async function fetchData() {
             displayPercent(data);
             displayDataHora(data);
             displayElectionInfo(data);
-            createCards(data);
             colorMap(data);
         } else {
             console.error('Os dados recebidos não são um array:', data);
@@ -140,11 +121,11 @@ function displayDataHora(data) {
 // Exibe informações da eleição (Votos Totais, Nulos/Brancos, e Válidos)
 function displayElectionInfo(data) {
     const listaEleicaoDiv = document.getElementById('lista-eleicao');
-    if (data.length > 0) {
-        const votoTotal = parseInt(data[0].VotoTotal.replace(/\./g, '')) || 0;
-        const votoNuloBranco = parseInt(data[0].VotoNuloBranco.replace(/\./g, '')) || 0;
-        const votosValidos = parseInt(data[0].VotoValido.replace(/\./g, '')) || 0;
+    const votoTotal = parseInt(data[0].VotoTotal.replace(/\./g, '')) || 0;
+    const votoNuloBranco = parseInt(data[0].VotoNuloBranco.replace(/\./g, '')) || 0;
+    const votosValidos = votoTotal - votoNuloBranco;
 
+    if (data.length > 0) {
         listaEleicaoDiv.innerHTML = `
             <div><strong>Votos Totais:</strong> ${votoTotal.toLocaleString('pt-BR')}</div>
             <div><strong>Votos Nulos/Brancos:</strong> ${votoNuloBranco.toLocaleString('pt-BR')}</div>
@@ -152,9 +133,7 @@ function displayElectionInfo(data) {
         `;
         console.log(votoTotal);
     }
-}
 
-function createCards(data) {
     const container = document.getElementById('cards-container');
     container.innerHTML = ''; // Limpa o contêiner antes de adicionar novos cards
 
@@ -162,43 +141,51 @@ function createCards(data) {
     data.sort((a, b) => parseInt(b.CandidatoPorcentagem) - parseInt(a.CandidatoPorcentagem));
 
     data.forEach(candidate => {
-        // Verifica se todos os campos têm valor (não estão vazios ou indefinidos)
+        // Verifica se todos os campos necessários têm valor (não estão vazios ou indefinidos)
         if (
             candidate.Candidato && candidate.Partido && candidate.Imagem &&
             candidate.CandidatoCor && candidate.Voto && candidate.CandidatoPorcentagem
         ) {
-            // Substitui a vírgula por ponto na porcentagem
-            const porcentagem = candidate.CandidatoPorcentagem.replace(',', '.');
-
+            // Substitui a vírgula por ponto na porcentagem e calcula
+            const porcentagem = votosValidos > 0 ? ((parseInt(candidate.Voto.replace(/\./g, '').replace(',', '.')) / votosValidos) * 100).toFixed(2) : '0.00';
+    
             // Cria o card com HTML dinâmico
             const cardHTML = `
                 <div class="card my-3">
+                    ${candidate.Status ? 
+                        `<div class="card-header bg-${candidate.StatusCor === 'verde' ? 'success' : 
+                            candidate.StatusCor === 'vermelho' ? 'danger' : 'primary'} text-white montserrat">
+                            <p class="m-0">${candidate.Status}</p>
+                        </div>` 
+                        : '' 
+                    }
                     <div class="row card-body g-0">
-<div class="col-md-4 imagem">
-    <img src="${candidate.Imagem}" class="img-fluid rounded-circle">
-</div>
-<div class="col-md-8">
-    <div class="card-body">
-        <div class="d-flex">
-            <h2 class="card-title poppins align-content-center">${candidate.Candidato}</h2>
-            <div class="ms-auto">
-                <h3 class="card-title poppins mb-0">${porcentagem}%</h3>
-                <h5 class="text-end me-2 fw-light">${candidate.Voto}</h5>
-            </div>
-        </div>
-        <div class="mt-2 progress" style="height: 3px" role="progressbar" aria-label="Basic example" aria-valuenow="${porcentagem}" aria-valuemin="0" aria-valuemax="100">
-            <div class="progress-bar" style="width: ${porcentagem}%; background-color: ${candidate.CandidatoCor};"></div>
-        </div>
-    </div>
-</div>
+                        <div class="col-md-4 imagem">
+                            <img src="${candidate.Imagem}" class="img-fluid rounded-circle">
+                        </div>
+                        <div class="col-md-8">
+                            <div class="card-body">
+                                <div class="d-flex">
+                                    <h2 class="card-title poppins align-content-center">${candidate.Candidato}</h2>
+                                    <div class="ms-auto">
+                                        <h3 class="card-title poppins mb-0">${porcentagem}%</h3>
+                                        <h5 class="text-end me-2 fw-light">${candidate.Voto}</h5>
+                                    </div>
+                                </div>
+                                <div class="mt-2 progress" style="height: 3px" role="progressbar" aria-label="Basic example" aria-valuenow="${porcentagem}" aria-valuemin="0" aria-valuemax="100">
+                                    <div class="progress-bar" style="width: ${porcentagem}%; background-color: ${candidate.CandidatoCor};"></div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             `;
-
+    
             // Converte a string HTML para elementos reais e adiciona ao contêiner
             container.insertAdjacentHTML('beforeend', cardHTML);
         }
     });
+    
 }
 
 function colorMap(data) {
