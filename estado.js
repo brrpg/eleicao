@@ -56,6 +56,13 @@ function displayVotes(data, estado) {
     const barraDiv = document.getElementById('barra');
     const dataHoraDiv = document.getElementById('data-hora');
 
+    // Limpar os dados exibidos anteriormente
+    listaEleicaoDiv.innerHTML = '';
+    cardsContainer.innerHTML = '';
+    porcentagemDiv.innerHTML = '';
+    barraDiv.style.width = '0%';
+    dataHoraDiv.innerHTML = '';
+
     // Verifica se o estado está presente nos dados
     const estadoVotoNuloBranco = data.find(item => item.EstadoVotoNuloBranco === estado);
     if (!estadoVotoNuloBranco) {
@@ -82,7 +89,7 @@ function displayVotes(data, estado) {
     const totalVotos1 = totalVotos + votoNuloBranco;
 
     // Exibe as informações do estado
-    listaEleicaoDiv.innerHTML = `
+    listaEleicaoDiv.innerHTML = ` 
         <div><strong>Estado:</strong> ${estado.toUpperCase()}</div>
         <div><strong>Votos Totais:</strong> ${totalVotos1.toLocaleString('pt-BR')}</div>
         <div><strong>Votos Nulos/Brancos:</strong> ${votoNuloBranco.toLocaleString('pt-BR')}</div>
@@ -256,6 +263,7 @@ async function init() {
 }
 
 
+
 // Chama a função de inicialização ao carregar a página
 init();
 
@@ -326,12 +334,26 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    // Função para mostrar o mapa correspondente
+    function mostrarMapa(estado) {
+        // Oculta todos os mapas
+        document.querySelectorAll("object[type='image/svg+xml']").forEach(obj => obj.style.display = "none");
+
+        // Exibe o mapa correspondente ao estado
+        const mapa = document.getElementById(`mapa${estado === 'sp' ? '0' : estado === 'sc' ? '1' : estado === 'pe' ? '2' : '3'}`);
+        if (mapa) {
+            mapa.style.display = "block";
+        }
+    }
+
     // Verifica o hash da URL ao carregar a página
     const hash = window.location.hash.substring(1); // Remove o '#'
     if (hash) {
         mostrarDiv(hash); // Se houver hash na URL, chama a função para mostrar a div correspondente
+        mostrarMapa(hash); // Mostra o mapa correspondente
     } else {
         mostrarDiv("sp"); // Se não houver hash, exibe a primeira div por padrão (ou outra que você desejar)
+        mostrarMapa("sp"); // Exibe o mapa de São Paulo por padrão
     }
 
     // Configura o evento de clique nos botões
@@ -344,6 +366,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 window.location.hash = targetId; // Atualiza o hash na URL
             }
             mostrarDiv(targetId); // Mostra a div correspondente ao botão
+            mostrarMapa(targetId); // Exibe o mapa correspondente ao botão
         });
     });
 
@@ -351,5 +374,6 @@ document.addEventListener("DOMContentLoaded", function () {
     window.addEventListener('hashchange', function() {
         const newHash = window.location.hash.substring(1);
         mostrarDiv(newHash); // Exibe a div correspondente ao novo hash
+        mostrarMapa(newHash); // Exibe o mapa correspondente ao novo hash
     });
 });
