@@ -126,7 +126,7 @@ function displayElectionInfo(data) {
 
     // Obtém os valores de título e subtítulo
     const Titulo = data[0].Titulo || 'Eleições';
-    const SubTitulo = data[0].SubTitulo || 'Eleições';
+    const SubTitulo = data[0].SubTitulo || 'Gerais';
     tituloDiv.innerHTML = Titulo;
     subtituloDiv.innerHTML = SubTitulo;
 
@@ -143,11 +143,14 @@ function displayElectionInfo(data) {
     // Calcula o total de votos (votos válidos + votos nulos/brancos)
     const votoTotal = votosValidos + votoNuloBranco;
 
+    const votosValidosPorc = (100*votosValidos)/votoTotal || 0;
+    const votoNuloBrancoPorc = (100*votoNuloBranco)/votoTotal || 0;
+
     if (data.length > 0) {
         listaEleicaoDiv.innerHTML = `
             <div><strong>Votos Totais:</strong> ${votoTotal.toLocaleString('pt-BR')}</div>
-            <div><strong>Votos Nulos/Brancos:</strong> ${votoNuloBranco.toLocaleString('pt-BR')}</div>
-            <div><strong>Votos Válidos:</strong> ${votosValidos.toLocaleString('pt-BR')}</div>
+            <div><strong>Votos Nulos/Brancos:</strong> ${votoNuloBranco.toLocaleString('pt-BR')} (${votoNuloBrancoPorc.toFixed(2)}%)</div>
+            <div><strong>Votos Válidos:</strong> ${votosValidos.toLocaleString('pt-BR')} (${votosValidosPorc.toFixed(2)}%)</div>
         `;
         console.log(votoTotal);
     }
