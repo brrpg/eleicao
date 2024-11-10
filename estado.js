@@ -305,4 +305,40 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Ativa a busca dos dados da planilha
     fetchData();
+
+    let clickCount = 0;
+    let clickTimeout;
+    // Adiciona o evento de clique ao botão de atualização
+    const refreshButton = document.getElementById("refresh-button");
+    if (refreshButton) {
+        refreshButton.addEventListener("click", function() {
+            clickCount++;
+
+            // Reseta o contador após 1 segundo
+            clearTimeout(clickTimeout);
+            clickTimeout = setTimeout(() => clickCount = 0, 1000);
+
+            // Verifica se o botão foi clicado 5 vezes em 1 segundo
+            if (clickCount === 5) {
+                Swal.fire({
+                    title: "Pare!",
+                    text: "Você clicou muitas vezes no botão atualizar",
+                    icon: "warning",
+                    showConfirmButton: false,
+                    timer: 3500
+                });
+                refreshButton.disabled = true;
+
+                // Bloqueia o botão por 3 segundos
+                setTimeout(() => {
+                    refreshButton.disabled = false;
+                }, 3000);
+
+                // Reseta o contador após o pop-up
+                clickCount = 0;
+            } else {
+                fetchData();
+            }
+        });
+    }
 });
