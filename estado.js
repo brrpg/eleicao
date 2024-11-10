@@ -170,7 +170,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const Titulo = data[0].Titulo || 'Eleições';
         const SubtTtulo = data[0].SubTitulo || 'Eleições';
-
+        const DataHora = data[0].DataHora;
 
         const candidatosHTML = candidatos.map(candidate => {
             const votosCandidato = parseInt(candidate.Voto.replace(/\./g, '')) || 0;
@@ -223,7 +223,7 @@ document.addEventListener("DOMContentLoaded", function () {
         subtituloDiv.innerHTML = `${SubtTtulo}`;
         porcentagemDiv.innerHTML = `${porcentagemEstado}%`;
         barraDiv.style.width = `${porcentagemEstado}%`;
-        dataHoraDiv.innerHTML = `${new Date().toLocaleString('pt-BR')}`;
+        dataHoraDiv.innerHTML = `${DataHora}`;
     }
 
     function colorirSVG(svgElement, proporcoes, corMax, estado, data) {
