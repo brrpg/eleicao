@@ -1,344 +1,245 @@
-function verificarEstado() {
-    const hash = window.location.hash.substring(1); // Pega o hash da URL sem o '#'
+// Função para verificar se o link atual corresponde ao link da página
+function highlightActiveLink() {
+    const currentPath = window.location.pathname;
+    const links = document.querySelectorAll('header a'); // Seleciona todos os links dentro do elemento nav
 
-    if (hash === 'sp') {
-        console.log('SÃO PAULO');
-    } else if (hash === 'sc') {
-        console.log('SANTA CATARINA');
-    } else if (hash === 'pe') {
-        console.log('PERNAMBUCO');
-    } 
-    else if (hash === 'go') {
-        console.log('GOIÁS');
-    } else {
-        console.log('Estado não reconhecido');
-        window.location.hash = '#sp';
+    links.forEach(link => {
+        const href = link.getAttribute('href');
+        if (href === currentPath) {
+            link.classList.add('fw-bold'); // Adiciona a classe 'fw-bold' para o link ativo
+        } else {
+            link.classList.remove('fw-bold'); // Remove a classe 'fw-bold' dos outros links
+        }
+    });
+}
+
+// Chama a função quando a página carregar
+window.onload = highlightActiveLink;
+
+async function fetchData() {
+    const url = 'https://opensheet.elk.sh/1T_r486_3eFo3izRUVLrW8r6vEBAGMsVkvAIWN872C80/Presidente'; // URL corrigida
+
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+
+        // Adicione esta linha para verificar a estrutura dos dados
+        console.log('Dados recebidos:', data);
+
+        // Verifique se a resposta é um array
+        if (Array.isArray(data)) {
+            // Funções para exibir os dados
+            displayPercent(data);
+            displayDataHora(data);
+            displayElectionInfo(data);
+            colorMap(data);
+        } else {
+            console.error('Os dados recebidos não são um array:', data);
+        }
+
+    } catch (error) {
+        console.error('Erro ao buscar os dados:', error);
     }
 }
 
-verificarEstado();
 
-document.addEventListener("DOMContentLoaded", function () {
-    const botoes = document.querySelectorAll(".nav button");
-    const divs = document.querySelectorAll("div[id^='sp'], div[id^='sc'], div[id^='pe'], div[id^='go']"); // Seleciona as divs com id correspondente
-    const title = document.getElementById("title");
-    let dadosVotacao = []; // Armazena os dados da planilha
+let clickCount = 0; // Contador de cliques
+let timer; // Timer para gerenciar o intervalo
 
-    // Função para buscar dados da planilha
-    async function fetchData() {
-        try {
-            const response = await fetch('https://opensheet.elk.sh/1T_r486_3eFo3izRUVLrW8r6vEBAGMsVkvAIWN872C80/Estado');
-            if (!response.ok) {
-                throw new Error('Erro na rede');
-            }
-            dadosVotacao = await response.json();
-            console.log('Dados recebidos:', dadosVotacao);
-            
-            // Após carregar os dados, verificar o hash na URL e mostrar a aba correspondente
-            const hash = window.location.hash.replace('#', '');
-            if (hash) {
-                mostrarDiv(hash); // Chama mostrarDiv para o estado da URL
-            }
-        } catch (error) {
-            console.error('Erro ao buscar os dados:', error);
-        }
+document.getElementById('refresh-button').addEventListener('click', () => {
+    fetchData(); // Chama a função de buscar dados
+
+    clickCount++; // Incrementa o contador de cliques
+
+    // Se um timer já estiver ativo, não faz nada
+    if (!timer) {
+        // Inicia um novo timer que redefine o contador após 2 segundos
+        timer = setTimeout(() => {
+            clickCount = 0; // Reseta o contador
+            timer = null; // Limpa o timer
+        }, 2000); // 2000 milissegundos (2 segundos)
     }
 
-    // Função para mostrar a div correspondente ao hash
-    async function mostrarDiv(id) {
-        // Oculta todas as divs
-        divs.forEach((div) => {
-            div.style.display = "none";
+    // Se o contador atingir 3 cliques
+    if (clickCount === 3) {
+        Swal.fire({
+            title: "Pare!",
+            text: "Você clicou muitas vezes no botão atualizar",
+            icon: "warning",
+            showConfirmButton: false,
+            timer: 3500
         });
-
-        // Exibe a div correspondente ao ID
-        const targetDiv = document.getElementById(id);
-        if (targetDiv) {
-            targetDiv.style.display = "block";
-        }
-
-        // Altera o título com base no botão correspondente ao ID
-        const botao = document.querySelector(`button[data-target="${id}"]`);
-        if (botao) {
-            const novoTitulo = botao.getAttribute("data-titulo");
-            title.textContent = novoTitulo;
-        }
-
-        // Exibe os votos e colorir o mapa se os dados estiverem carregados
-        if (dadosVotacao.length > 0) {
-            displayVotes(dadosVotacao, id); // Exibe os votos para o estado
-            mostrarMapa(id, dadosVotacao); // Exibe o mapa colorido
-        }
-    }
-
-    // Função para mostrar o mapa correspondente
-    function mostrarMapa(estado, dados) {
-        // Oculta todos os mapas
-        document.querySelectorAll("object[type='image/svg+xml']").forEach(obj => obj.style.display = "none");
-
-        // Exibe o mapa correspondente ao estado
-        const mapa = document.getElementById(`mapa${estado === 'sp' ? '0' : estado === 'sc' ? '1' : estado === 'pe' ? '2' : '3'}`);
-        if (mapa) {
-            mapa.style.display = "block";
-
-            // Filtra candidatos do estado
-            const candidatos = dados.filter(item => item.Estado === estado);
-            const votoNuloBranco = dados.find(item => item.EstadoVotoNuloBranco === estado);
-            const totalVotos = candidatos.reduce((sum, candidate) => sum + (parseInt(candidate.Voto.replace(/\./g, '')) || 0), 0);
-            const totalVotos1 = totalVotos + (votoNuloBranco ? parseInt(votoNuloBranco.VotoNuloBranco.replace(/\./g, '')) : 0);
-
-            // Colorir o mapa com base nos dados da planilha
-            const proporcoes = {};
-            candidatos.forEach(candidate => {
-                const votos = parseInt(candidate.Voto.replace(/\./g, '')) || 0;
-                const percentage = (votos / totalVotos1) * 100;
-                if (candidate.CandidatoCor) {
-                    proporcoes[candidate.CandidatoCor] = (proporcoes[candidate.CandidatoCor] || 0) + percentage;
-                }
-            });
-
-            // Encontrar a cor com a maior porcentagem
-            const maxCor = Object.keys(proporcoes).reduce((a, b) => proporcoes[a] > proporcoes[b] ? a : b, '');
-
-            mapa.addEventListener("load", function() {
-                const svgDoc = mapa.contentDocument;
-                colorirSVG(svgDoc.querySelector("svg"), proporcoes, maxCor, estado, dados);
-            });
-        }
-    }
-
-    // Função para exibir os votos
-    function displayVotes(data, estado) {
-        if (!data || !estado) {
-            console.error('Dados ou estado inválido:', data, estado);
-            return;
-        }
-
-        const listaEleicaoDiv = document.getElementById('lista-eleicao');
-        const cardsContainer = document.getElementById('cards-container');
-        const porcentagemDiv = document.getElementById('porcentagem');
-        const tituloDiv = document.getElementById('titulo');
-        const subtituloDiv = document.getElementById('subtitulo');
-        const barraDiv = document.getElementById('barra');
-        const dataHoraDiv = document.getElementById('data-hora');
-
-        // Limpar os dados exibidos anteriormente
-        listaEleicaoDiv.innerHTML = '';
-        cardsContainer.innerHTML = '';
-        porcentagemDiv.innerHTML = '';
-        tituloDiv.innerHTML = '';
-        subtituloDiv.innerHTML = '';
-        barraDiv.style.width = '0%';
-        dataHoraDiv.innerHTML = '';
-
-        // Verifica se o estado está presente nos dados
-        const estadoVotoNuloBranco = data.find(item => item.EstadoVotoNuloBranco === estado);
-        if (!estadoVotoNuloBranco) {
-            listaEleicaoDiv.innerHTML = `<div>Nenhum dado encontrado para ${estado.toUpperCase()}.</div>`;
-            return;
-        }
-
-        // Obtém a porcentagem de apuração do estado
-        const porcentagemEstado = estadoVotoNuloBranco.Porcentagem ? parseFloat(estadoVotoNuloBranco.Porcentagem) : 0;
-
-        // Obtém dados globais e valida VotoNuloBranco
-        const globalData = data[0]; // Presumindo que a primeira entrada contém os dados globais
-        const votoNuloBranco = estadoVotoNuloBranco.VotoNuloBranco ? parseInt(estadoVotoNuloBranco.VotoNuloBranco.replace(/\./g, '')) || 0 : 0;
-
-        // Filtra candidatos do estado
-        const candidatos = data.filter(item => item.Estado === estado);
-        if (candidatos.length === 0) {
-            listaEleicaoDiv.innerHTML = `<div>Nenhum dado encontrado para ${estado.toUpperCase()}.</div>`;
-            return;
-        }
-
-        // Soma os votos de todos os candidatos do estado
-        const totalVotos = candidatos.reduce((sum, candidate) => sum + (parseInt(candidate.Voto.replace(/\./g, '')) || 0), 0);
-
-        // Total de votos com nulos e brancos
-        const totalVotos1 = totalVotos + votoNuloBranco;
-
-        // Exibe as informações do estado
-        listaEleicaoDiv.innerHTML = ` 
-            <div><strong>Estado:</strong> ${estado.toUpperCase()}</div>
-            <div><strong>Votos Totais:</strong> ${totalVotos1.toLocaleString('pt-BR')}</div>
-            <div><strong>Votos Nulos/Brancos:</strong> ${votoNuloBranco.toLocaleString('pt-BR')}</div>
-            <div><strong>Votos Válidos:</strong> ${totalVotos.toLocaleString('pt-BR')}</div>
-        `;
-
-        // Criação do HTML para cada candidato e cálculo da porcentagem
-
-        const Titulo = data[0].Titulo || 'Eleições';
-        const SubtTtulo = data[0].SubTitulo || 'Eleições';
-        const DataHora = data[0].DataHora;
-
-        const candidatosHTML = candidatos.map(candidate => {
-            const votosCandidato = parseInt(candidate.Voto.replace(/\./g, '')) || 0;
-            const porcentagem = totalVotos > 0 ? ((votosCandidato / totalVotos) * 100).toFixed(2) : '0.00'; // Garante duas casas decimais
+        clickCount = 0; // Reseta o contador após mostrar o alerta
+        clearTimeout(timer); // Limpa o timer
+        timer = null; // Reseta o timer
         
-            return {
-                nome: candidate.Candidato,
-                cor: candidate.CandidatoCor,
-                porcentagem: porcentagem, // Já formatado com duas casas decimais
-                imagem: candidate.Imagem,
-                votos: candidate.Voto,
-                status: candidate.Status || '',
-                statuscor: candidate.StatusCor || ''
-            };
-        }).sort((a, b) => b.porcentagem - a.porcentagem); // Ordena os candidatos pela maior porcentagem
+        // Congela o botão
+        const refreshButton = document.getElementById('refresh-button');
+        refreshButton.disabled = true; // Desabilita o botão
 
-        // Renderiza os dados dos candidatos na página
-        cardsContainer.innerHTML = candidatosHTML.map(candidate => `
-        <div class="card my-3">
-            ${candidate.status ? 
-                `<div class="card-header bg-${candidate.statuscor === 'verde' ? 'success' : candidate.statuscor === 'vermelho' ? 'danger' : 'primary'} text-white montserrat">
-                    <p class="m-0">${candidate.status}</p>
-                </div>` 
-                : ''
-            }
-            <div class="row card-body g-0">
-                <div class="col-md-4 imagem">
-                    <img src="${candidate.imagem}" class="img-fluid rounded-circle" alt="${candidate.nome}">
-                </div>
-                <div class="col-md-8">
-                    <div class="card-body">
-                        <div class="d-flex">
-                            <h2 class="card-title poppins align-content-center">${candidate.nome}</h2>
-                            <div class="ms-auto">
-                                <h3 class="card-title poppins mb-0">${candidate.porcentagem}%</h3> <!-- Porcentagem com duas casas decimais -->
-                                <h5 class="text-end me-2 fw-light">${candidate.votos}</h5>
-                            </div>
+        // Reabilita o botão após 5 segundos (5000 milissegundos)
+        setTimeout(() => {
+            refreshButton.disabled = false; // Reabilita o botão
+        }, 5000); // Tempo de congelamento em milissegundos
+    }
+});
+
+// Exibe a porcentagem e ajusta a largura da barra
+function displayPercent(data) {
+    const percentCalcText = document.getElementById('porcentagem');
+    const percentCalc = document.getElementById('barra');
+
+    // Limpa o conteúdo anterior
+    percentCalcText.innerHTML = '';
+    
+    // Verifica se há dados na coluna "Porcentagem"
+    if (data.length > 0 && data[0].Porcentagem !== undefined) {
+        const porcentagem = parseFloat(data[0].Porcentagem);
+
+        // Verifique o valor no console
+        console.log("Porcentagem obtida:", porcentagem);
+
+        // Define o texto na div
+        percentCalcText.innerHTML = `${porcentagem}%`;
+
+        // Altera o width da barra com o valor da porcentagem, incluindo "%"
+        percentCalc.style.width = `${porcentagem}%`;
+
+    } else {
+        console.warn("Porcentagem não encontrada ou dados insuficientes.");
+    }
+}
+
+// Exibe a data e hora
+function displayDataHora(data) {
+    const dataHoraDiv = document.getElementById('data-hora');
+    if (data.length > 0 && data[0].DataHora) {
+        dataHoraDiv.innerHTML = `${data[0].DataHora}`;
+    }
+}
+
+// Exibe informações da eleição (Votos Totais, Nulos/Brancos, e Válidos)
+function displayElectionInfo(data) {
+    const listaEleicaoDiv = document.getElementById('lista-eleicao');
+    const tituloDiv = document.getElementById('titulo');
+    const subtituloDiv = document.getElementById('subtitulo');
+
+    // Obtém os valores de título e subtítulo
+    const Titulo = data[0].Titulo || 'Eleições';
+    const SubTitulo = data[0].SubTitulo || 'Gerais';
+    tituloDiv.innerHTML = Titulo;
+    subtituloDiv.innerHTML = SubTitulo;
+
+    // Calcula os votos nulos e brancos
+    const votoNuloBranco = parseInt(data[0].VotoNuloBranco.replace(/\./g, '')) || 0;
+
+    // Calcula os votos válidos somando os votos de todos os candidatos
+    let votosValidos = 0;
+    data.forEach(candidato => {
+        const votos = parseInt(candidato.Voto.replace(/\./g, '')) || 0;
+        votosValidos += votos;
+    });
+
+    // Calcula o total de votos (votos válidos + votos nulos/brancos)
+    const votoTotal = votosValidos + votoNuloBranco;
+
+    const votosValidosPorc = (100*votosValidos)/votoTotal || 0;
+    const votoNuloBrancoPorc = (100*votoNuloBranco)/votoTotal || 0;
+
+    if (data.length > 0) {
+        listaEleicaoDiv.innerHTML = `
+            <div><strong>Votos Totais:</strong> ${votoTotal.toLocaleString('pt-BR')}</div>
+            <div><strong>Votos Nulos/Brancos:</strong> ${votoNuloBranco.toLocaleString('pt-BR')} (${votoNuloBrancoPorc.toFixed(2)}%)</div>
+            <div><strong>Votos Válidos:</strong> ${votosValidos.toLocaleString('pt-BR')} (${votosValidosPorc.toFixed(2)}%)</div>
+        `;
+        console.log(votoTotal);
+    }
+
+    const container = document.getElementById('cards-container');
+    container.innerHTML = ''; // Limpa o contêiner antes de adicionar novos cards
+
+    // Ordena os candidatos em ordem decrescente com base no número de votos
+    data.sort((a, b) => parseInt(b.CandidatoPorcentagem) - parseInt(a.CandidatoPorcentagem));
+
+    data.forEach(candidate => {
+        // Verifica se todos os campos necessários têm valor (não estão vazios ou indefinidos)
+        if (
+            candidate.Candidato && candidate.Partido && candidate.Imagem &&
+            candidate.CandidatoCor && candidate.Voto
+        ) {
+            // Substitui a vírgula por ponto na porcentagem e calcula
+            const porcentagem = votosValidos > 0 ? ((parseInt(candidate.Voto.replace(/\./g, '').replace(',', '.')) / votosValidos) * 100).toFixed(2) : '0.00';
+    
+            // Cria o card com HTML dinâmico
+            const cardHTML = `
+                <div class="card my-3">
+                    ${candidate.Status ? 
+                        `<div class="card-header bg-${candidate.StatusCor === 'verde' ? 'success' : 
+                            candidate.StatusCor === 'vermelho' ? 'danger' : 'primary'} text-white montserrat">
+                            <p class="m-0">${candidate.Status}</p>
+                        </div>` 
+                        : '' 
+                    }
+                    <div class="row card-body g-0">
+                        <div class="col-md-4 imagem">
+                            <img src="${candidate.Imagem}" class="img-fluid rounded-circle">
                         </div>
-                        <div class="mt-2 progress" style="height: 3px" role="progressbar" aria-label="Progresso do candidato" aria-valuenow="${candidate.porcentagem}" aria-valuemin="0" aria-valuemax="100">
-                            <div class="progress-bar" style="width: ${candidate.porcentagem}%; background-color: ${candidate.cor};"></div>
+                        <div class="col-md-8">
+                            <div class="card-body">
+                                <div class="d-flex">
+                                    <h2 class="card-title poppins align-content-center">${candidate.Candidato}</h2>
+                                    <div class="ms-auto">
+                                        <h3 class="card-title poppins mb-0">${porcentagem}%</h3>
+                                        <h5 class="text-end me-2 fw-light">${candidate.Voto}</h5>
+                                    </div>
+                                </div>
+                                <div class="mt-2 progress" style="height: 3px" role="progressbar" aria-label="Basic example" aria-valuenow="${porcentagem}" aria-valuemin="0" aria-valuemax="100">
+                                    <div class="progress-bar" style="width: ${porcentagem}%; background-color: ${candidate.CandidatoCor};"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    `).join('');
-
-        // Exibe a porcentagem de apuração do estado
-        tituloDiv.innerHTML = `${Titulo}`;
-        subtituloDiv.innerHTML = `${SubtTtulo}`;
-        porcentagemDiv.innerHTML = `${porcentagemEstado}%`;
-        barraDiv.style.width = `${porcentagemEstado}%`;
-        dataHoraDiv.innerHTML = `${DataHora}`;
-    }
-
-    function colorirSVG(svgElement, proporcoes, corMax, estado, data) {
-        if (!svgElement) {
-            console.error("Elemento SVG não encontrado.");
-            return;
+            `;
+    
+            // Converte a string HTML para elementos reais e adiciona ao contêiner
+            container.insertAdjacentHTML('beforeend', cardHTML);
         }
-    
-        const paths = Array.from(svgElement.querySelectorAll("path"));
-        const totalPaths = paths.length;
-    
-        // Verifica se proporcoes contém algum NaN
-        let hasNaN = Object.values(proporcoes).some(value => isNaN(value));
-        if (hasNaN) {
-            // Se proporcoes tiver NaN, pinta tudo de cinza claro
-            paths.forEach(path => path.setAttribute("fill", "#c1c1c1"));
-            return;
-        }
-    
-        // Aplica a cor de acordo com a proporção
-        let index = 0;
-        for (const [cor, porcentagem] of Object.entries(proporcoes)) {
-            const count = Math.floor(totalPaths * (porcentagem / 100));
-            for (let i = 0; i < count; i++) {
-                if (index < totalPaths) {
-                    paths[index].setAttribute("fill", cor);
-                    index++;
-                }
-            }
-        }
-    
-        // Preenche o restante com a cor do candidato com a maior porcentagem
-        while (index < totalPaths) {
-            paths[index].setAttribute("fill", corMax); // Preenche o restante com a cor do candidato mais forte
-            index++;
-        }
-    
-        // Pintar cidades específicas com cores da planilha
-        const cidades = {
-            sp: { id: 'cidadesp' },
-            sc: { id: 'cidadesc' },
-            pe: { id: 'cidadepe' },
-            go: { id: 'cidadego' }
-        };
-    
-        if (cidades[estado]) {
-            const { id } = cidades[estado];
-            const cidadeCor = getColorForCity(id, data); // Obtém a cor da cidade da planilha
-            const cidadePath = svgElement.querySelector(`#${id}`);
-            if (cidadePath) {
-                cidadePath.setAttribute("fill", cidadeCor);
-            }
-        }
-
-        // Alterar stroke e stroke-width
-        alterarStroke(svgElement);
-        console.log(svgElement);
-    }
-    
-    function getColorForCity(cityId, data) {
-        const cityData = data.find(item => item.Cidade === cityId);
-        return cityData ? cityData.CidadeCor : '#000000'; // Retorna preto se a cor não for encontrada
-    }
-
-    // Atualiza a URL com o hash correspondente ao estado
-    botoes.forEach((botao) => {
-        botao.addEventListener("click", function() {
-            const id = botao.getAttribute("data-target");
-            history.pushState(null, null, `#${id}`); // Atualiza a URL com o hash
-            mostrarDiv(id); // Muda a div ao clicar
-        });
     });
+    
+}
 
-    // Verifica o hash na URL ao carregar a página
-    const hash = window.location.hash.replace('#', '');
-    if (hash) {
-        mostrarDiv(hash); // Se houver hash na URL, exibe a div correspondente
-    }
+function colorMap(data) {
+    data.forEach(item => {
+        // Confirma se as chaves correspondem aos nomes na planilha
+        //console.log(item); // Log para visualizar cada item retornado
+        
+        const estado = item.Estados; // Acessa a coluna de Estados
+        const estadoCor = item.EstadosCor; // Acessa a coluna de EstadosCor
 
-    // Ativa a busca dos dados da planilha
-    fetchData();
+        // Garante que o estado e a cor estão preenchidos
+        if (estado && estadoCor) {
+            // Formata o id do path e do círculo
+            const stateId = estado.toLowerCase() + 'path'; // Converte o nome do estado para minúsculas e adiciona "path"
+            const circleId = estado.toLowerCase() + 'circle'; // Converte o nome do estado para minúsculas e adiciona "circle"
+            
+            // Seleciona o path pelo id
+            const statePath = document.getElementById(stateId);
+            const stateCircle = document.getElementById(circleId); // Seleciona o círculo pelo id
+            //console.log(`Tentando colorir o estado: ${stateId} com a cor: ${estadoCor}`); // Log para depuração
 
-    let clickCount = 0;
-    let clickTimeout;
-    // Adiciona o evento de clique ao botão de atualização
-    const refreshButton = document.getElementById("refresh-button");
-    if (refreshButton) {
-        refreshButton.addEventListener("click", function() {
-            clickCount++;
-
-            // Reseta o contador após 1 segundo
-            clearTimeout(clickTimeout);
-            clickTimeout = setTimeout(() => clickCount = 0, 1000);
-
-            // Verifica se o botão foi clicado 5 vezes em 1 segundo
-            if (clickCount === 5) {
-                Swal.fire({
-                    title: "Pare!",
-                    text: "Você clicou muitas vezes no botão atualizar",
-                    icon: "warning",
-                    showConfirmButton: false,
-                    timer: 3500
-                });
-                refreshButton.disabled = true;
-
-                // Bloqueia o botão por 3 segundos
-                setTimeout(() => {
-                    refreshButton.disabled = false;
-                }, 3000);
-
-                // Reseta o contador após o pop-up
-                clickCount = 0;
-            } else {
-                fetchData();
+            if (statePath) {
+                // Define a cor de preenchimento usando a propriedade CSS
+                statePath.style.setProperty('fill', estadoCor, 'important');
+                //console.log(`Cor aplicada com sucesso para ${estadoId}`); // Log para depuração
             }
-        });
-    }
-});
+
+            if (stateCircle) {
+                stateCircle.style.setProperty('fill', estadoCor, 'important');
+            }
+        }
+    });
+}
+
+// Inicializa a busca de dados quando a página é carregada
+window.onload = fetchData;
