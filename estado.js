@@ -235,6 +235,14 @@ document.addEventListener("DOMContentLoaded", function () {
         const paths = Array.from(svgElement.querySelectorAll("path"));
         const totalPaths = paths.length;
     
+        // Verifica se proporcoes contém algum NaN
+        let hasNaN = Object.values(proporcoes).some(value => isNaN(value));
+        if (hasNaN) {
+            // Se proporcoes tiver NaN, pinta tudo de cinza claro
+            paths.forEach(path => path.setAttribute("fill", "#c1c1c1"));
+            return;
+        }
+    
         // Aplica a cor de acordo com a proporção
         let index = 0;
         for (const [cor, porcentagem] of Object.entries(proporcoes)) {
@@ -269,22 +277,15 @@ document.addEventListener("DOMContentLoaded", function () {
                 cidadePath.setAttribute("fill", cidadeCor);
             }
         }
-    
+
         // Alterar stroke e stroke-width
         alterarStroke(svgElement);
+        console.log(svgElement);
     }
-
+    
     function getColorForCity(cityId, data) {
         const cityData = data.find(item => item.Cidade === cityId);
         return cityData ? cityData.CidadeCor : '#000000'; // Retorna preto se a cor não for encontrada
-    }
-
-    function alterarStroke(svgElement) {
-        const paths = svgElement.querySelectorAll("path");
-        paths.forEach(path => {
-            path.setAttribute("stroke", "#fff"); // Define a cor do stroke como preto
-            path.setAttribute("stroke-width", "0.5"); // Define a largura do stroke
-        });
     }
 
     // Atualiza a URL com o hash correspondente ao estado
