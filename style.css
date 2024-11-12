@@ -22,5 +22,5 @@
 }
 
 .toast {
-    --bs-toast-bg: rgba(255,255,255,1);
+    --bs-toast-bg: rgba(255,255,255,1)!important;
 }
