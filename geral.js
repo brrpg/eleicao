@@ -159,7 +159,16 @@ function displayElectionInfo(data) {
     container.innerHTML = ''; // Limpa o contêiner antes de adicionar novos cards
 
     // Ordena os candidatos em ordem decrescente com base no número de votos
-    data.sort((a, b) => parseInt(b.CandidatoPorcentagem) - parseInt(a.CandidatoPorcentagem));
+    data.sort((a, b) => {
+        const votosA = parseInt(a.Voto.replace(/\./g, '').replace(',', '.')) || 0;
+        const votosB = parseInt(b.Voto.replace(/\./g, '').replace(',', '.')) || 0;
+    
+        // Verifica qual campo deve ser usado para a ordenação
+        const porcentagemA = parseFloat(a.CandidatoPorcentagem) || ((votosA / votosValidos) * 100);
+        const porcentagemB = parseFloat(b.CandidatoPorcentagem) || ((votosB / votosValidos) * 100);
+    
+        return porcentagemB - porcentagemA; // Ordenação decrescente
+    });
 
     data.forEach(candidate => {
         // Verifica se todos os campos necessários têm valor (não estão vazios ou indefinidos)
