@@ -80,7 +80,7 @@ document.addEventListener("DOMContentLoaded", function () {
         document.querySelectorAll("object[type='image/svg+xml']").forEach(obj => obj.style.display = "none");
 
         // Exibe o mapa correspondente ao estado
-        const mapa = document.getElementById(`mapa${estado === 'sp' ? '0' : estado === 'sc' ? '1' : estado === 'pe' ? '2' : estado === 'go' ? '3' : '4'}`);
+        const mapa = document.getElementById(`mapa${estado === 'sp' ? '0' : estado === 'sc' ? '1' : estado === 'pe' ? '2' : estado === 'go' ? '3' : estado === 'mg' ? '4' : '0'}`);
         if (mapa) {
             mapa.style.display = "block";
 
