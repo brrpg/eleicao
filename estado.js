@@ -10,6 +10,9 @@ function verificarEstado() {
     } 
     else if (hash === 'go') {
         console.log('GOIÁS');
+    }
+    else if (hash === 'mg') {
+        console.log('MINAS GERAIS');
     } else {
         console.log('Estado não reconhecido');
         window.location.hash = '#sp';
@@ -20,7 +23,7 @@ verificarEstado();
 
 document.addEventListener("DOMContentLoaded", function () {
     const botoes = document.querySelectorAll(".nav button");
-    const divs = document.querySelectorAll("div[id^='sp'], div[id^='sc'], div[id^='pe'], div[id^='go']"); // Seleciona as divs com id correspondente
+    const divs = document.querySelectorAll("div[id^='sp'], div[id^='sc'], div[id^='pe'], div[id^='go'], div[id^='mg']"); // Seleciona as divs com id correspondente
     const title = document.getElementById("title");
     let dadosVotacao = []; // Armazena os dados da planilha
 
@@ -77,7 +80,7 @@ document.addEventListener("DOMContentLoaded", function () {
         document.querySelectorAll("object[type='image/svg+xml']").forEach(obj => obj.style.display = "none");
 
         // Exibe o mapa correspondente ao estado
-        const mapa = document.getElementById(`mapa${estado === 'sp' ? '0' : estado === 'sc' ? '1' : estado === 'pe' ? '2' : '3'}`);
+        const mapa = document.getElementById(`mapa${estado === 'sp' ? '0' : estado === 'sc' ? '1' : estado === 'pe' ? '2' : estado === 'go' ? '3' : '4'}`);
         if (mapa) {
             mapa.style.display = "block";
 
@@ -266,7 +269,8 @@ document.addEventListener("DOMContentLoaded", function () {
             sp: { id: 'cidadesp' },
             sc: { id: 'cidadesc' },
             pe: { id: 'cidadepe' },
-            go: { id: 'cidadego' }
+            go: { id: 'cidadego' },
+            mg: { id: 'cidademg' }
         };
     
         if (cidades[estado]) {
