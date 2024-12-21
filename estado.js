@@ -87,8 +87,10 @@ document.addEventListener("DOMContentLoaded", function () {
             // Filtra candidatos do estado
             const candidatos = dados.filter(item => item.Estado === estado);
             const votoNuloBranco = dados.find(item => item.EstadoVotoNuloBranco === estado);
-            const totalVotos = candidatos.reduce((sum, candidate) => sum + (parseInt(candidate.Voto.replace(/\./g, '')) || 0), 0);
-            const totalVotos1 = totalVotos + (votoNuloBranco ? parseInt(votoNuloBranco.VotoNuloBranco.replace(/\./g, '')) : 0);
+            const totalVotos = candidatos.reduce((sum, candidate) => {
+                return sum + (candidate.Voto ? parseInt(candidate.Voto.replace(/\./g, '')) || 0 : 0);
+            }, 0);
+            const totalVotos1 = totalVotos + (votoNuloBranco?.VotoNuloBranco ? parseInt(votoNuloBranco.VotoNuloBranco.replace(/\./g, '')) || 0 : 0);
 
             // Colorir o mapa com base nos dados da planilha
             const proporcoes = {};
