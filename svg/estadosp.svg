@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" version="1.2" baseProfile="tiny" width="800" height="500" viewBox="0 0 800 500" stroke-linecap="round" stroke-linejoin="round">
-    <g id="estadosp">
+    <g id="estadosp" fill="#c1c1c1" stroke="#000000" stroke-width="0.5">
         <path
             d="M 305.6644 141.8109 311.3788 153.1049 306.5677 156.173 290.293 175.5612 286.3494 172.511 292.0369 169.7096 295.247 159.3159 299.8267 158.82 305.6644 141.8109 Z" />
         <path
