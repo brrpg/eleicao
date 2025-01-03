@@ -3,16 +3,16 @@ function verificarEstado() {
 
     if (hash === 'sp') {
         console.log('SÃO PAULO');
-    } else if (hash === 'sc') {
-        console.log('SANTA CATARINA');
+    } else if (hash === 'rs') {
+        console.log('RIO GRANDE DO SUL');
     } else if (hash === 'pe') {
         console.log('PERNAMBUCO');
     } 
-    else if (hash === 'go') {
-        console.log('GOIÁS');
+    else if (hash === 'df') {
+        console.log('DISTRITO FEDERAL');
     }
-    else if (hash === 'mg') {
-        console.log('MINAS GERAIS');
+    else if (hash === 'am') {
+        console.log('AMAZONAS');
     } else {
         console.log('Estado não reconhecido');
         window.location.hash = '#sp';
@@ -23,7 +23,7 @@ verificarEstado();
 
 document.addEventListener("DOMContentLoaded", function () {
     const botoes = document.querySelectorAll(".nav button");
-    const divs = document.querySelectorAll("div[id^='sp'], div[id^='sc'], div[id^='pe'], div[id^='go'], div[id^='mg']"); // Seleciona as divs com id correspondente
+    const divs = document.querySelectorAll("div[id^='sp'], div[id^='rs'], div[id^='pe'], div[id^='df'], div[id^='am']"); // Seleciona as divs com id correspondente
     const title = document.getElementById("title");
     let dadosVotacao = []; // Armazena os dados da planilha
 
@@ -80,7 +80,7 @@ document.addEventListener("DOMContentLoaded", function () {
         document.querySelectorAll("object[type='image/svg+xml']").forEach(obj => obj.style.display = "none");
 
         // Exibe o mapa correspondente ao estado
-        const mapa = document.getElementById(`mapa${estado === 'sp' ? '0' : estado === 'sc' ? '1' : estado === 'pe' ? '2' : estado === 'go' ? '3' : estado === 'mg' ? '4' : '0'}`);
+        const mapa = document.getElementById(`mapa${estado === 'sp' ? '0' : estado === 'rs' ? '1' : estado === 'pe' ? '2' : estado === 'df' ? '3' : estado === 'am' ? '4' : '0'}`);
         if (mapa) {
             mapa.style.display = "block";
 
@@ -269,10 +269,10 @@ document.addEventListener("DOMContentLoaded", function () {
         // Pintar cidades específicas com cores da planilha
         const cidades = {
             sp: { id: 'cidadesp' },
-            sc: { id: 'cidadesc' },
+            rs: { id: 'cidaders' },
             pe: { id: 'cidadepe' },
-            go: { id: 'cidadego' },
-            mg: { id: 'cidademg' }
+            df: { id: 'cidadedf' },
+            am: { id: 'cidadeam' }
         };
     
         if (cidades[estado]) {
